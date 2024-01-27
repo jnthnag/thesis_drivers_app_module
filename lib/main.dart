@@ -8,7 +8,7 @@ import 'authentication/login_screen.dart';
 
 Future<void> main()async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await Permission.locationWhenInUse.isDenied.then((valueOfPermission)
   {

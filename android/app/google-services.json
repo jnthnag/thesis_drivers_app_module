@@ -46,6 +46,25 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:205456388687:android:923d664cfc31a93d88b03a",
+        "android_client_info": {
+          "package_name": "com.thesis.thesisdriversappmodule"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjkmC-NlWZRmKqYttx8x-e_G29ZNFSLL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:205456388687:android:9d64a00074c5edac88b03a",
         "android_client_info": {
           "package_name": "com.thesis.usersapp"
