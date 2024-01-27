@@ -41,7 +41,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   uploadImageToStorage() async
   {
     // use Date and Time to generate a unique ID for the image
-    String imageIDName = DateTime.now().millisecond.toString();
+    String imageIDName = DateTime.now().millisecondsSinceEpoch.toString();
     Reference referenceImage = FirebaseStorage.instance.ref().child("Images").child(imageIDName);
 
     UploadTask uploadTask = referenceImage.putFile(File(imageFile!.path));
