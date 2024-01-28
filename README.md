@@ -1,16 +1,15 @@
 # thesis_drivers_app_module
 
-This is the drivers application corresponding to the initial users app(thesis_drivers_app)
+This is the driver's application corresponding to the initial user's app(thesis_drivers_app)
 
-## Getting Started
+## Contents
 
-This project is a starting point for a Flutter application.
+- Signup and Login for drivers
+- Internal after Login contents:
+-   Navigation Bar
+-     Home Page (applied: Google Maps API)
+-     Earnings Page
+-     Trips Page
+-     Profile Page
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
