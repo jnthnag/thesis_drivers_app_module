@@ -45,6 +45,7 @@ dependencies:
   firebase_storage:
   google_maps_flutter:
   permission_handler:
+  flutter_geofire:
 
   # google APIs
   geolocator:

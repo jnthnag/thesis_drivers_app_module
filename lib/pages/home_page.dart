@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 import '../global/global_var.dart';
 
 
@@ -20,6 +22,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
+  DatabaseReference? newTripRequestReference;
   Position? currentPositionOfUser;
   Color colorToShow = Colors.green;
   String titleToShow = "GO ONLINE NOW";
@@ -63,6 +66,61 @@ class _HomePageState extends State<HomePage> {
     //
     // await initializeGeoFireListener();
   }
+
+  goOnlineNow()
+  {
+    // all drivers who are available for trip requests
+    Geofire.initialize("onlineDrivers");
+
+    // get active driver location, under each unique driver ID and store in database
+    Geofire.setLocation(
+        FirebaseAuth.instance.currentUser!.uid,
+        currentPositionOfUser!.latitude,
+        currentPositionOfUser!.longitude
+    );
+
+    // with location above, this method will update the location of the driver every n seconds
+    // status: Waiting - On Trip -> Ended
+    newTripRequestReference = FirebaseDatabase.instance.ref()
+        .child("drivers")
+        .child(FirebaseAuth.instance.currentUser!.uid)
+        .child("newTripStatus");
+    newTripRequestReference!.set("waiting");
+
+    newTripRequestReference!.onValue.listen((event) { });
+  }
+
+  goOfflineNow()
+  {
+    // stop sharing live location
+    Geofire.removeLocation(FirebaseAuth.instance.currentUser!.uid);
+
+    // stop listening to new trips status
+    newTripRequestReference!.onDisconnect();
+    newTripRequestReference!.remove();
+    newTripRequestReference = null;
+  }
+
+  setAndGetLocationUpdates()
+  {
+    positionStreamHomePage = Geolocator.getPositionStream()
+        .listen((Position position)
+    {
+      currentPositionOfUser = position;
+
+      if(isDriverAvailable == true) // updating drivers geo coordinates only if the driver is online
+        {
+          Geofire.setLocation(FirebaseAuth.instance.currentUser!.uid,
+              currentPositionOfUser!.latitude,
+              currentPositionOfUser!.longitude,
+          );
+        }
+
+      LatLng positionLatLng = LatLng(position.latitude, position.longitude);
+      controllerGoogleMap!.animateCamera(CameraUpdate.newLatLng(positionLatLng));
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +238,10 @@ class _HomePageState extends State<HomePage> {
                                             if(!isDriverAvailable)
                                             {
                                               // go online
-                                              // get driver location
+                                              goOnlineNow();
+
+                                              // get driver location updates real time
+                                              setAndGetLocationUpdates();
 
                                               Navigator.pop(context);
 
@@ -194,6 +255,9 @@ class _HomePageState extends State<HomePage> {
                                             else
                                               {
                                                 // go offline
+                                                goOfflineNow();
+
+                                                // stop location sharing
 
                                                 Navigator.pop(context);
 
