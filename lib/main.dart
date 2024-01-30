@@ -10,14 +10,24 @@ import 'authentication/login_screen.dart';
 
 Future<void> main()async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Generate permission request for location
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Permission.locationWhenInUse.isDenied.then((valueOfPermission)
   {
     if(valueOfPermission)
-      {
-        Permission.locationWhenInUse.request();
-      }
+    {
+      Permission.locationWhenInUse.request();
+    }
+  });
+
+  // generate permission request for push notifications
+  await Permission.notification.isDenied.then((valueOfPermission)
+  {
+    if(valueOfPermission)
+    {
+      Permission.notification.request();
+    }
   });
 
   runApp(const MyApp());
@@ -32,7 +42,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Drivers App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black87,

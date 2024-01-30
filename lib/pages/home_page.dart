@@ -9,6 +9,7 @@ import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../global/global_var.dart';
+import '../pushNotification/push_notification_system.dart';
 
 
 
@@ -119,6 +120,19 @@ class _HomePageState extends State<HomePage> {
       LatLng positionLatLng = LatLng(position.latitude, position.longitude);
       controllerGoogleMap!.animateCamera(CameraUpdate.newLatLng(positionLatLng));
     });
+  }
+
+  initializePushNotificationSystem()
+  {
+    PushNotificationSystem notificationSystem =  PushNotificationSystem();
+    notificationSystem.generateDeviceRegistrationToken();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    initializePushNotificationSystem();
   }
 
 
