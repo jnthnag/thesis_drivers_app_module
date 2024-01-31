@@ -1,6 +1,13 @@
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:thesis_drivers_app_module/models/trip_details.dart';
+import 'package:thesis_drivers_app_module/widgets/loading_dialog.dart';
+import 'package:thesis_drivers_app_module/widgets/notification_dialog.dart';
 
 class PushNotificationSystem
 {
@@ -24,7 +31,7 @@ class PushNotificationSystem
   }
 
   // listening for new notifications (covers 3 scenarios)
-  startListeningForNewNotification()
+  startListeningForNewNotification(BuildContext context)
   {
     // 1. App is terminated (app completely closed)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? messageRemote)
@@ -32,6 +39,8 @@ class PushNotificationSystem
      if(messageRemote != null)
        {
          String tripID =  messageRemote.data["tripID"];
+
+         retrieveTripRequestInfo(tripID, context);
        }
     });
 
@@ -41,6 +50,8 @@ class PushNotificationSystem
       if(messageRemote != null)
       {
         String tripID =  messageRemote.data["tripID"];
+        retrieveTripRequestInfo(tripID, context);
+
       }
     });
 
@@ -50,9 +61,52 @@ class PushNotificationSystem
       if(messageRemote != null)
       {
         String tripID =  messageRemote.data["tripID"];
+        retrieveTripRequestInfo(tripID, context);
+
       }
     });
     
   }
+
+  retrieveTripRequestInfo(tripID, BuildContext context)
+  {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => LoadingDialog(messageText: "Getting Details"),
+
+    );
+
+
+    DatabaseReference tripRequestRef = FirebaseDatabase.instance.ref().child("tripRequests").child(tripID);
+
+    tripRequestRef.once().then((dataSnapshot){
+     Navigator.pop(context);
+
+     //play notification sound
+
+     TripDetails tripDetailsInfo = TripDetails();
+       double pickUpLat = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["latitude"]);
+       double pickUpLng= double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["longitude"]);
+       tripDetailsInfo.pickUpLatLng = LatLng(pickUpLat, pickUpLng);
+
+       tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
+
+     double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);
+     double dropoffLng = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["longitude"]);
+     tripDetailsInfo.dropOffLatLng = LatLng(dropOffLat, dropoffLng);
+
+     tripDetailsInfo.dropOffAddress = (dataSnapshot.snapshot.value! as Map)["dropOffAddress"];
+
+     tripDetailsInfo.userName = (dataSnapshot.snapshot.value! as Map)["userName"];
+     tripDetailsInfo.userPhone = (dataSnapshot.snapshot.value! as Map)["userPhone"];
+
+     showDialog(
+         context: context,
+         builder: (BuildContext context) => NotificationDialog(tripDetailsInfo: tripDetailsInfo,),
+     );
+    });
+  }
+
 
 }

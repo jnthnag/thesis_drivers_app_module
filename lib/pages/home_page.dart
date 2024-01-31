@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:thesis_drivers_app_module/authentication/login_screen.dart';
+import 'package:thesis_drivers_app_module/pages/about_page.dart';
 import '../global/global_var.dart';
 import '../pushNotification/push_notification_system.dart';
 
@@ -28,6 +30,10 @@ class _HomePageState extends State<HomePage> {
   Color colorToShow = Colors.green;
   String titleToShow = "GO ONLINE NOW";
   bool isDriverAvailable = false;
+  bool isDrawerOpened = true;
+  GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
+
+
 
   void updateMapTheme(GoogleMapController controller)
   {
@@ -126,9 +132,16 @@ class _HomePageState extends State<HomePage> {
   {
     PushNotificationSystem notificationSystem =  PushNotificationSystem();
     notificationSystem.generateDeviceRegistrationToken();
-    notificationSystem.startListeningForNewNotification();
+    notificationSystem.startListeningForNewNotification(context);
   }
 
+  resetAppNow() {
+    setState(() {
+
+      isDrawerOpened = true;
+
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -140,6 +153,102 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key:sKey,
+      drawer: Container(
+        width: 230,
+        color: Colors.amber,
+        child: Drawer(
+          backgroundColor: Colors.white10,
+          child: ListView(
+            children: [
+
+              //header
+              Container(
+                color: Colors.amber,
+                height: 160,
+                child: DrawerHeader(
+                  decoration: const BoxDecoration(
+                    color: Colors.amber,
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        "assets/images/avatarman.png",
+                        width: 60,
+                        height: 60,
+                      ),
+
+                      const SizedBox(width : 16,),
+
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo
+                            ),
+                          ),
+                          const Text(
+                            "Profile",
+                            style: TextStyle(
+                              color: Colors.indigo,
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const Divider(
+                height: 1,
+                color: Colors.indigo,
+                thickness: 1,
+              ),
+
+              const SizedBox(height: 10,),
+
+              //body
+              GestureDetector(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (c) => AboutPage()));
+                },
+                child: ListTile(
+                  leading: IconButton(
+                      onPressed: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (c) => AboutPage()));
+                      },
+                      icon: const Icon(Icons.info, color: Colors.indigo,)
+                  ),
+                  title: const Text("About", style: TextStyle(color: Colors.indigo),),
+                ),
+              ),
+
+              GestureDetector(
+                onTap: (){
+                  FirebaseAuth.instance.signOut();
+                  Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
+                },
+                child: ListTile(
+                  leading: IconButton(
+                      onPressed: (){
+                        FirebaseAuth.instance.signOut();
+                        Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
+                      },
+                      icon: const Icon(Icons.logout, color: Colors.indigo,)
+                  ),
+                  title: const Text("Logout", style: TextStyle(color: Colors.indigo),),
+
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           
@@ -158,6 +267,46 @@ class _HomePageState extends State<HomePage> {
 
               getCurrentLiveLocationOfDriver();
             },
+          ),
+
+          Positioned(
+            top: 165,
+            left: 19,
+            child: GestureDetector(
+              onTap: ()
+              {
+                if(isDrawerOpened == true) {
+                  sKey.currentState!.openDrawer();
+                }
+                else{
+                  resetAppNow();
+                }
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const
+                    [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 5,
+                        spreadRadius: 0.5,
+                        offset: Offset(0.7, 0.7),
+                      )
+                    ]
+                ),
+                child: CircleAvatar(
+                  backgroundColor: Colors.amber,
+                  radius: 20,
+                  child: Icon(
+                    isDrawerOpened == true ? Icons.menu : Icons.close,
+                    color: Colors.indigo,
+                  ),
+                ),
+              ),
+
+            ),
           ),
 
           Container(
