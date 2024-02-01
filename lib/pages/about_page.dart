@@ -30,7 +30,7 @@ class _AboutPageState extends State<AboutPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Image.asset("assets/images/logo(old).png"),
+            Image.asset("assets/images/logo.png"),
 
             const SizedBox(height: 10,),
 

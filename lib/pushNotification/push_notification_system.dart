@@ -1,10 +1,12 @@
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:thesis_drivers_app_module/global/global_var.dart';
 import 'package:thesis_drivers_app_module/models/trip_details.dart';
 import 'package:thesis_drivers_app_module/widgets/loading_dialog.dart';
 import 'package:thesis_drivers_app_module/widgets/notification_dialog.dart';
@@ -84,13 +86,17 @@ class PushNotificationSystem
      Navigator.pop(context);
 
      //play notification sound
+     audioPlayer.open(
+       Audio("assets/audio/alert_sound.mp3"),
+     );
+     audioPlayer.play();
 
      TripDetails tripDetailsInfo = TripDetails();
-       double pickUpLat = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["latitude"]);
-       double pickUpLng= double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["longitude"]);
-       tripDetailsInfo.pickUpLatLng = LatLng(pickUpLat, pickUpLng);
+     double pickUpLat = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["latitude"]);
+     double pickUpLng= double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["longitude"]);
+     tripDetailsInfo.pickUpLatLng = LatLng(pickUpLat, pickUpLng);
 
-       tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
+     tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
 
      double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);
      double dropoffLng = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["longitude"]);
