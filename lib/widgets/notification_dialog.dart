@@ -1,9 +1,14 @@
 import 'dart:async';
 import 'dart:html';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:thesis_drivers_app_module/models/trip_details.dart';
+import 'package:thesis_drivers_app_module/pages/new_trip_page.dart';
+import 'package:thesis_drivers_app_module/widgets/loading_dialog.dart';
 import '../global/global_var.dart';
-
+import '../methods/common_methods.dart';
 
 class NotificationDialog extends StatefulWidget {
   TripDetails? tripDetailsInfo;
@@ -14,29 +19,25 @@ class NotificationDialog extends StatefulWidget {
   State<NotificationDialog> createState() => _NotificationDialogState();
 }
 
-class _NotificationDialogState extends State<NotificationDialog>
-{
+class _NotificationDialogState extends State<NotificationDialog> {
   String tripRequestStatus = "";
+  CommonMethods common = CommonMethods();
 
-  cancelNotificationDialogAfter20Sec()
-  {
+  cancelNotificationDialogAfter20Sec() {
     const oneTickPerSecond = Duration(seconds: 1);
-    var timerCountDown = Timer.periodic(oneTickPerSecond, (timer)
-    {
+    var timerCountDown = Timer.periodic(oneTickPerSecond, (timer) {
       driverTripRequestTimeout = driverTripRequestTimeout - 1;
 
-      if(tripRequestStatus == "accepted")
-        {
-          timer.cancel();
-          driverTripRequestTimeout = 20;
-        }
+      if (tripRequestStatus == "accepted") {
+        timer.cancel();
+        driverTripRequestTimeout = 20;
+      }
 
-      if(driverTripRequestTimeout == 0)
-        {
-          Navigator.pop(context);
-          timer.cancel();
-          driverTripRequestTimeout = 20;
-        }
+      if (driverTripRequestTimeout == 0) {
+        Navigator.pop(context);
+        timer.cancel();
+        driverTripRequestTimeout = 20;
+      }
     });
   }
 
@@ -45,6 +46,58 @@ class _NotificationDialogState extends State<NotificationDialog>
     super.initState();
 
     cancelNotificationDialogAfter20Sec();
+  }
+
+  checkAvailabilityOfTripRequest(BuildContext context) async {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) =>
+          LoadingDialog(messageText: 'please wait...'),
+    );
+
+    DatabaseReference driverTripStatusRef = FirebaseDatabase.instance.ref()
+        .child("drivers")
+        .child(FirebaseAuth.instance.currentUser!.uid)
+        .child("driverTripStatus");
+
+    await driverTripStatusRef.once().then((snap) {
+      Navigator.pop(context);
+      Navigator.pop(context);
+
+      String newTripStatusValue = "";
+      if (snap.snapshot.value != null)
+      {
+        newTripStatusValue = snap.snapshot.value.toString();
+      }
+      else
+      {
+        common.displaySnackbar("Trip Request Not Found", context);
+      }
+
+      if (newTripStatusValue == widget.tripDetailsInfo!.tripID)
+      {
+        driverTripStatusRef.set("accepted");
+
+        //disable home page location updates
+        common.turnOffLocationUpdatesForHomePage();
+
+        Navigator.push(context, MaterialPageRoute(builder: (c) => NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo)));
+      }
+      else if (newTripStatusValue == "cancelled")
+      {
+        common.displaySnackbar(
+            "Trip Request has been Cancelled by dispatcher...", context);
+      }
+      else if (newTripStatusValue == "timeout")
+      {
+        common.displaySnackbar("Trip Request has timed out...", context);
+      }
+      else
+      {
+        common.displaySnackbar("Trip Request Removed. Not Found", context);
+      }
+    });
   }
 
   @override
@@ -202,14 +255,15 @@ class _NotificationDialogState extends State<NotificationDialog>
                   ),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: ()
-                      {
+                      onPressed: () {
                         // notification sound
                         audioPlayer.stop();
 
                         setState(() {
                           tripRequestStatus = "accepted";
                         });
+
+                        checkAvailabilityOfTripRequest(context);
                       },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green),

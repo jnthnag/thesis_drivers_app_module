@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
   DatabaseReference? newTripRequestReference;
-  Position? currentPositionOfUser;
+  Position? currentPositionOfDriver;
   Color colorToShow = Colors.green;
   String titleToShow = "GO ONLINE NOW";
   bool isDriverAvailable = false;
@@ -59,9 +59,10 @@ class _HomePageState extends State<HomePage> {
   getCurrentLiveLocationOfDriver()async
   {
     Position positionOfUser = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation);
-    currentPositionOfUser = positionOfUser;
+    currentPositionOfDriver = positionOfUser;
+    driverCurrentPosition = currentPositionOfDriver;
 
-    LatLng LatLngUserPosition = LatLng(currentPositionOfUser!.latitude, currentPositionOfUser!.longitude);
+    LatLng LatLngUserPosition = LatLng(currentPositionOfDriver!.latitude, currentPositionOfDriver!.longitude);
 
     CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 15);
 
@@ -82,8 +83,8 @@ class _HomePageState extends State<HomePage> {
     // get active driver location, under each unique driver ID and store in database
     Geofire.setLocation(
         FirebaseAuth.instance.currentUser!.uid,
-        currentPositionOfUser!.latitude,
-        currentPositionOfUser!.longitude
+        currentPositionOfDriver!.latitude,
+        currentPositionOfDriver!.longitude
     );
 
     // with location above, this method will update the location of the driver every n seconds
@@ -113,13 +114,13 @@ class _HomePageState extends State<HomePage> {
     positionStreamHomePage = Geolocator.getPositionStream()
         .listen((Position position)
     {
-      currentPositionOfUser = position;
+      currentPositionOfDriver = position;
 
       if(isDriverAvailable == true) // updating drivers geo coordinates only if the driver is online
         {
           Geofire.setLocation(FirebaseAuth.instance.currentUser!.uid,
-              currentPositionOfUser!.latitude,
-              currentPositionOfUser!.longitude,
+              currentPositionOfDriver!.latitude,
+              currentPositionOfDriver!.longitude,
           );
         }
 
