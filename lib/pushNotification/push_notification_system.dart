@@ -33,7 +33,7 @@ class PushNotificationSystem
   }
 
   // listening for new notifications (covers 3 scenarios)
-  startListeningForNewNotification(BuildContext context)
+  startListeningForNewNotification(BuildContext context) async
   {
     // 1. App is terminated (app completely closed)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? messageRemote)
