@@ -24,6 +24,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  /// variables used
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
   DatabaseReference? newTripRequestReference;
@@ -34,6 +35,7 @@ class _HomePageState extends State<HomePage> {
   bool isDrawerOpened = true;
   GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
   MapThemeMethods themeMethods = MapThemeMethods();
+
 
   getCurrentLiveLocationOfDriver()async
   {
@@ -46,12 +48,6 @@ class _HomePageState extends State<HomePage> {
     CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 15);
 
     controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-
-    // await common.convertGeographicCoordinatesIntoHumanReadableAddress(currentPositionOfUser!, context);
-    //
-    // await getUserInfoAndCheckBlockStatus();
-    //
-    // await initializeGeoFireListener();
   }
 
   goOnlineNow()

@@ -12,6 +12,7 @@ const CameraPosition googlePlexInitialPosition = CameraPosition(
 );
 
 StreamSubscription<Position>? positionStreamHomePage;
+StreamSubscription<Position>? positionStreamNewTripPage;
 Position? driverCurrentPosition;
 
 int driverTripRequestTimeout = 20;

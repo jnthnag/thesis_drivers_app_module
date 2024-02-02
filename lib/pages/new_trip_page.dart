@@ -1,9 +1,14 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:thesis_drivers_app_module/models/trip_details.dart';
 import 'package:thesis_drivers_app_module/widgets/loading_dialog.dart';
 import '../global/global_var.dart';
+import '../methods/common_methods.dart';
 import '../methods/map_theme_methods.dart';
 
 class NewTripPage extends StatefulWidget
@@ -22,18 +27,201 @@ class _NewTripPageState extends State<NewTripPage>
   GoogleMapController? controllerGoogleMap;
   MapThemeMethods themeMethods = MapThemeMethods();
   double googleMapPaddingFromBottom = 0;
+  List<LatLng> coordinatesPolylineLatLngList = [];
+  PolylinePoints polylinePoints = PolylinePoints();
+  Set<Marker> markersSet = Set<Marker>();
+  Set<Circle> circlesSet = Set<Circle>();
+  Set<Polyline> polyLinesSet = Set<Polyline>();
+  BitmapDescriptor? carMarkerIcon;
 
-  obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, userPickUpLocationLatLng) async
+  makeMarker()
+  {
+    if(carMarkerIcon == null)
+    {
+      ImageConfiguration configuration = createLocalImageConfiguration(context, size: const Size(2, 2));
+
+      BitmapDescriptor.fromAssetImage(configuration, "assets/images/tracking.png")
+          .then((valueIcon)
+      {
+        carMarkerIcon = valueIcon;
+      });
+    }
+  }
+
+  obtainDirectionAndDrawRoute(sourceLocationLatLng, destinationLocationLatLng) async
   {
     showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (BuildContext) => LoadingDialog(messageText: "please wait...",)
+        builder: (BuildContext context) => LoadingDialog(messageText: "please wait...",)
     );
+
+    var tripDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(
+        sourceLocationLatLng,
+        destinationLocationLatLng
+    );
+
+    Navigator.pop(context);
+
+    PolylinePoints pointsPolyline = PolylinePoints();
+    List<PointLatLng> latLngPoints = pointsPolyline.decodePolyline(tripDetailsInfo!.encodedPoints!);
+
+    coordinatesPolylineLatLngList.clear();
+
+    if(latLngPoints.isNotEmpty)
+    {
+      latLngPoints.forEach((PointLatLng pointLatLng)
+      {
+        coordinatesPolylineLatLngList.add(
+            LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+
+    //draw polyline
+    polyLinesSet.clear();
+
+    setState(()
+    {
+      Polyline polyline = Polyline(
+          polylineId: const PolylineId("routeID"),
+          color: Colors.amber,
+          points: coordinatesPolylineLatLngList,
+          jointType: JointType.round,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          geodesic: true
+      );
+
+      polyLinesSet.add(polyline);
+    });
+
+    //fit the polyline on google map
+    LatLngBounds boundsLatLng;
+
+    if(sourceLocationLatLng.latitude > destinationLocationLatLng.latitude
+        && sourceLocationLatLng.longitude > destinationLocationLatLng.longitude)
+    {
+      boundsLatLng = LatLngBounds(
+        southwest: destinationLocationLatLng,
+        northeast: sourceLocationLatLng,
+      );
+    }
+    else if(sourceLocationLatLng.longitude > destinationLocationLatLng.longitude)
+    {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(sourceLocationLatLng.latitude, destinationLocationLatLng.longitude),
+        northeast: LatLng(destinationLocationLatLng.latitude, sourceLocationLatLng.longitude),
+      );
+    }
+    else if(sourceLocationLatLng.latitude > destinationLocationLatLng.latitude)
+    {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(destinationLocationLatLng.latitude, sourceLocationLatLng.longitude),
+        northeast: LatLng(sourceLocationLatLng.latitude, destinationLocationLatLng.longitude),
+      );
+    }
+    else
+    {
+      boundsLatLng = LatLngBounds(
+        southwest: sourceLocationLatLng,
+        northeast: destinationLocationLatLng,
+      );
+    }
+
+    controllerGoogleMap!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 72));
+
+    //add marker
+    Marker sourceMarker = Marker(
+      markerId: const MarkerId('sourceID'),
+      position: sourceLocationLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    );
+
+    Marker destinationMarker = Marker(
+      markerId: const MarkerId('destinationID'),
+      position: destinationLocationLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+    );
+
+    setState(() {
+      markersSet.add(sourceMarker);
+      markersSet.add(destinationMarker);
+    });
+
+    //add circle
+    Circle sourceCircle = Circle(
+      circleId: const CircleId('sourceCircleID'),
+      strokeColor: Colors.orange,
+      strokeWidth: 4,
+      radius: 14,
+      center: sourceLocationLatLng,
+      fillColor: Colors.green,
+    );
+
+    Circle destinationCircle = Circle(
+      circleId: const CircleId('destinationCircleID'),
+      strokeColor: Colors.green,
+      strokeWidth: 4,
+      radius: 14,
+      center: destinationLocationLatLng,
+      fillColor: Colors.orange,
+    );
+
+    setState(() {
+      circlesSet.add(sourceCircle);
+      circlesSet.add(destinationCircle);
+    });
+
 
 
   }
-  
+
+  getLiveLocationUpdatesOfDriver()
+  {
+    LatLng lastPositionLatLng = LatLng(0, 0);
+
+    positionStreamNewTripPage = Geolocator.getPositionStream().listen((Position positionDriver)
+    {
+      driverCurrentPosition = positionDriver;
+
+      LatLng driverCurrentPositionLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
+
+      Marker carMarker = Marker(
+        markerId: const MarkerId("carMarkerID"),
+        position: driverCurrentPositionLatLng,
+        icon: carMarkerIcon!,
+        infoWindow: const InfoWindow(title: "My Location"),
+      );
+
+      setState(() {
+        CameraPosition cameraPosition = CameraPosition(target: driverCurrentPositionLatLng, zoom: 16);
+        controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+
+        // removes previous marker after 1 sec then draw again
+        markersSet.removeWhere((element) => element.markerId.value == "carMarkerID");
+        markersSet.add(carMarker);
+      });
+
+      lastPositionLatLng = driverCurrentPositionLatLng;
+
+      //update Trip Details Information
+
+      //update driver location to tripRequest
+      Map updatedLocationOfDriver =
+      {
+        "latitude": driverCurrentPosition!.latitude,
+        "longitude": driverCurrentPosition!.longitude,
+      };
+      FirebaseDatabase.instance.ref().child("tripRequests")
+          .child(widget.newTripDetailsInfo!.tripID!)
+          .child("driverLocation")
+          .set(updatedLocationOfDriver);
+    });
+  }
+
+
+  /// Widget build starts here
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +253,7 @@ class _NewTripPageState extends State<NewTripPage>
 
               await obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, userPickUpLocationLatLng);
 
+              getLiveLocationUpdatesOfDriver();
 
             },
           ),
