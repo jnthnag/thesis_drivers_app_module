@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:thesis_drivers_app_module/models/trip_details.dart';
-import 'package:thesis_drivers_app_module/widgets/loading_dialog.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
 import '../methods/map_theme_methods.dart';
+import '../models/trip_details.dart';
+import '../widgets/loading_dialog.dart';
+
 
 class NewTripPage extends StatefulWidget
 {
@@ -21,7 +21,7 @@ class NewTripPage extends StatefulWidget
   State<NewTripPage> createState() => _NewTripPageState();
 }
 
-class _NewTripPageState extends State<NewTripPage> 
+class _NewTripPageState extends State<NewTripPage>
 {
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
@@ -38,7 +38,7 @@ class _NewTripPageState extends State<NewTripPage>
   {
     if(carMarkerIcon == null)
     {
-      ImageConfiguration configuration = createLocalImageConfiguration(context, size: const Size(2, 2));
+      ImageConfiguration configuration = createLocalImageConfiguration(context, size: Size(2, 2));
 
       BitmapDescriptor.fromAssetImage(configuration, "assets/images/tracking.png")
           .then((valueIcon)
@@ -53,7 +53,7 @@ class _NewTripPageState extends State<NewTripPage>
     showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (BuildContext context) => LoadingDialog(messageText: "please wait...",)
+        builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',)
     );
 
     var tripDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(
@@ -72,16 +72,14 @@ class _NewTripPageState extends State<NewTripPage>
     {
       latLngPoints.forEach((PointLatLng pointLatLng)
       {
-        coordinatesPolylineLatLngList.add(
-            LatLng(pointLatLng.latitude, pointLatLng.longitude));
+        coordinatesPolylineLatLngList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
       });
     }
 
     //draw polyline
     polyLinesSet.clear();
 
-    setState(()
-    {
+    setState(() {
       Polyline polyline = Polyline(
           polylineId: const PolylineId("routeID"),
           color: Colors.amber,
@@ -172,9 +170,6 @@ class _NewTripPageState extends State<NewTripPage>
       circlesSet.add(sourceCircle);
       circlesSet.add(destinationCircle);
     });
-
-
-
   }
 
   getLiveLocationUpdatesOfDriver()
@@ -198,7 +193,6 @@ class _NewTripPageState extends State<NewTripPage>
         CameraPosition cameraPosition = CameraPosition(target: driverCurrentPositionLatLng, zoom: 16);
         controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-        // removes previous marker after 1 sec then draw again
         markersSet.removeWhere((element) => element.markerId.value == "carMarkerID");
         markersSet.add(carMarker);
       });
@@ -220,21 +214,23 @@ class _NewTripPageState extends State<NewTripPage>
     });
   }
 
-
-  /// Widget build starts here
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)
+  {
     makeMarker();
 
     return Scaffold(
       body: Stack(
         children: [
 
-          // google map
+          ///google map
           GoogleMap(
-            padding: EdgeInsets.only(top: googleMapPaddingFromBottom),
-            myLocationEnabled: true,
+            padding: EdgeInsets.only(bottom: googleMapPaddingFromBottom),
             mapType: MapType.normal,
+            myLocationEnabled: true,
+            markers: markersSet,
+            circles: circlesSet,
+            polylines: polyLinesSet,
             initialCameraPosition: googlePlexInitialPosition,
             onMapCreated: (GoogleMapController mapController) async
             {
@@ -256,9 +252,9 @@ class _NewTripPageState extends State<NewTripPage>
               await obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, userPickUpLocationLatLng);
 
               getLiveLocationUpdatesOfDriver();
-
             },
           ),
+
         ],
       ),
     );
