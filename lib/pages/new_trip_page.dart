@@ -224,6 +224,8 @@ class _NewTripPageState extends State<NewTripPage>
   /// Widget build starts here
   @override
   Widget build(BuildContext context) {
+    makeMarker();
+
     return Scaffold(
       body: Stack(
         children: [
