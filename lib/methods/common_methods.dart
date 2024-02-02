@@ -44,8 +44,8 @@ class CommonMethods
     positionStreamHomePage!.resume();
     Geofire.setLocation(
       FirebaseAuth.instance.currentUser!.uid,
-      driverCurrentPosition!.longitude,
-      driverCurrentPosition!.latitude
+      driverCurrentPosition!.latitude,
+      driverCurrentPosition!.longitude
     );
   }
 }

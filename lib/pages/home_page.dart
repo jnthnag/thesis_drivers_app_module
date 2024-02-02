@@ -11,6 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:thesis_drivers_app_module/authentication/login_screen.dart';
 import 'package:thesis_drivers_app_module/pages/about_page.dart';
 import '../global/global_var.dart';
+import '../methods/map_theme_methods.dart';
 import '../pushNotification/push_notification_system.dart';
 
 
@@ -32,29 +33,7 @@ class _HomePageState extends State<HomePage> {
   bool isDriverAvailable = false;
   bool isDrawerOpened = true;
   GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
-
-
-
-  void updateMapTheme(GoogleMapController controller)
-  {
-    // defining the path of the Json file theme that we want to apply and assign it to "value"
-    getJsonFileFromThemes("themes/night_theme.json").then ((value) => setGoogleMapStyle(value, controller));
-  }
-
-  Future<String> getJsonFileFromThemes(String mapStylePath) async
-  {
-    ByteData byteData = await rootBundle.load(mapStylePath);
-    var list = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
-
-    return utf8.decode(list);
-  }
-
-  setGoogleMapStyle(String googleMapStyle,GoogleMapController controller)
-  {
-    // after passing the decoded value of the json file
-    // to this function use setMapStyle to apply the theme
-    controller.setMapStyle(googleMapStyle);
-  }
+  MapThemeMethods themeMethods = MapThemeMethods();
 
   getCurrentLiveLocationOfDriver()async
   {
@@ -136,13 +115,15 @@ class _HomePageState extends State<HomePage> {
     notificationSystem.startListeningForNewNotification(context);
   }
 
-  resetAppNow() {
+  resetAppNow()
+  {
     setState(() {
 
       isDrawerOpened = true;
 
     });
   }
+
   @override
   void initState() {
     super.initState();
@@ -262,7 +243,7 @@ class _HomePageState extends State<HomePage> {
             onMapCreated: (GoogleMapController mapController)
             {
               controllerGoogleMap = mapController;
-              updateMapTheme(controllerGoogleMap!);
+              themeMethods.updateMapTheme(controllerGoogleMap!);
 
               googleMapCompleterController.complete(controllerGoogleMap);
 

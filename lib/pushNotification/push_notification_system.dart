@@ -99,8 +99,8 @@ class PushNotificationSystem
      tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
 
      double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);
-     double dropoffLng = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["longitude"]);
-     tripDetailsInfo.dropOffLatLng = LatLng(dropOffLat, dropoffLng);
+     double dropOffLng = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["longitude"]);
+     tripDetailsInfo.dropOffLatLng = LatLng(dropOffLat, dropOffLng);
 
      tripDetailsInfo.dropOffAddress = (dataSnapshot.snapshot.value! as Map)["dropOffAddress"];
 
