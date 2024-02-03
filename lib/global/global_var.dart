@@ -18,3 +18,10 @@ Position? driverCurrentPosition;
 int driverTripRequestTimeout = 20;
 
 final audioPlayer = AssetsAudioPlayer();
+
+String driverName = "";
+String driverPhone = "";
+String driverPhoto = "";
+String carColor = "";
+String carModel = "";
+String carPlateNumber = "";
