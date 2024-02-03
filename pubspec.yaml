@@ -50,6 +50,7 @@ dependencies:
   assets_audio_player:
   http:
   flutter_polyline_points:
+  url_launcher:
 
   # google APIs
   geolocator:

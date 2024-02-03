@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
 import '../methods/map_theme_methods.dart';
@@ -33,6 +34,11 @@ class _NewTripPageState extends State<NewTripPage>
   Set<Circle> circlesSet = Set<Circle>();
   Set<Polyline> polyLinesSet = Set<Polyline>();
   BitmapDescriptor? carMarkerIcon;
+  bool directionRequested = false;
+  String statusOfTrip = "accepted";
+  String durationText = "", distanceText = "";
+  String buttonTitleText = "ARRIVED";
+  Color buttonColor = Colors.indigoAccent;
 
   makeMarker()
   {
@@ -200,6 +206,7 @@ class _NewTripPageState extends State<NewTripPage>
       lastPositionLatLng = driverCurrentPositionLatLng;
 
       //update Trip Details Information
+      updateTripDetailsInformation();
 
       //update driver location to tripRequest
       Map updatedLocationOfDriver =
@@ -212,6 +219,45 @@ class _NewTripPageState extends State<NewTripPage>
           .child("driverLocation")
           .set(updatedLocationOfDriver);
     });
+  }
+
+  updateTripDetailsInformation() async
+  {
+    if(!directionRequested)
+    {
+      directionRequested = true;
+
+      if(driverCurrentPosition == null)
+      {
+        return;
+      }
+
+      var driverLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
+
+      LatLng dropOffDestinationLocationLatLng;
+
+
+      if(statusOfTrip == "accepted") // scenario 1: pick up order, driver drop off = USER pick up location
+      {
+        dropOffDestinationLocationLatLng = widget.newTripDetailsInfo!.pickUpLatLng!;
+      }
+      else // scenario 2: after order pickup: driver drop off = USER drop off location
+      {
+        dropOffDestinationLocationLatLng = widget.newTripDetailsInfo!.dropOffLatLng!;
+      }
+
+      var directionDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(driverLocationLatLng, dropOffDestinationLocationLatLng);
+
+      if(directionDetailsInfo != null)
+      {
+        directionRequested = false;
+
+        setState(() {
+          durationText = directionDetailsInfo.durationTextString!;
+          distanceText = directionDetailsInfo.distanceTextString!;
+        });
+      }
+    }
   }
 
   @override
@@ -253,6 +299,207 @@ class _NewTripPageState extends State<NewTripPage>
 
               getLiveLocationUpdatesOfDriver();
             },
+          ),
+
+          ///trip details
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.only(topRight: Radius.circular(17), topLeft: Radius.circular(17)),
+                boxShadow:
+                [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 17,
+                    spreadRadius: 0.5,
+                    offset: Offset(0.7, 0.7),
+                  ),
+                ],
+              ),
+              height: 256,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    //trip duration
+                    Center(
+                      child: Text(
+                        durationText + " - " + distanceText,
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 5,),
+
+                    //user name - call user icon btn
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+
+                        //user name
+                        Text(
+                          widget.newTripDetailsInfo!.userName!,
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        //call user icon btn
+                        GestureDetector(
+                          onTap: ()
+                          {
+                            launchUrl(
+                              Uri.parse(
+                                  "tel://${widget.newTripDetailsInfo!.userPhone.toString()}"
+                              ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(right: 10),
+                            child: Icon(
+                              Icons.phone_android_outlined,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+
+                    const SizedBox(height: 15,),
+
+                    // pickup icon and location
+                    Row(
+                      children: [
+
+                        Image.asset(
+                          "assets/images/initial.png",
+                          height: 16,
+                          width: 16,
+                        ),
+
+                        Expanded(
+                          child: Text(
+                            widget.newTripDetailsInfo!.pickUpAddress.toString(),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+
+                    const SizedBox(height: 15,),
+
+                    // drop-off icon and location
+                    Row(
+                      children: [
+
+                        Image.asset(
+                          "assets/images/final.png",
+                          height: 16,
+                          width: 16,
+                        ),
+
+                        Expanded(
+                          child: Text(
+                            widget.newTripDetailsInfo!.dropOffAddress.toString(),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+
+                    const SizedBox(height: 25,),
+
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () async
+                        {
+                          // execute statement when clicking ARRIVED BUTTON
+                          if(statusOfTrip == "accepted")
+                          {
+                            setState(() {
+                              buttonTitleText = "START TRIP";
+                              buttonColor = Colors.green;
+                            });
+
+                            statusOfTrip = "arrived";
+
+                            FirebaseDatabase.instance.ref()
+                                .child("tripRequests")
+                                .child(widget.newTripDetailsInfo!.tripID!)
+                                .child("status").set("arrived");
+
+                            showDialog(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',)
+                            );
+
+                            await obtainDirectionAndDrawRoute(
+                              widget.newTripDetailsInfo!.pickUpLatLng,
+                              widget.newTripDetailsInfo!.dropOffLatLng,
+                            );
+
+                            Navigator.pop(context);
+                          }
+                          // execute statement when clicking START TRIP BUTTON
+                          else if(statusOfTrip == "arrived")
+                          {
+                            setState(() {
+                              buttonTitleText = "END TRIP";
+                              buttonColor = Colors.amber;
+                            });
+
+                            statusOfTrip = "ontrip";
+
+                            FirebaseDatabase.instance.ref()
+                                .child("tripRequests")
+                                .child(widget.newTripDetailsInfo!.tripID!)
+                                .child("status").set("ontrip");
+                          }
+                          // execute statement when clicking END TRIP BUTTON
+                          else if(statusOfTrip == "ontrip")
+                          {
+                            //end the trip
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                        ),
+                        child: Text(
+                          buttonTitleText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
 
         ],
