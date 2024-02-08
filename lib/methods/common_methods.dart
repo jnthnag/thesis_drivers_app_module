@@ -20,6 +20,7 @@ class CommonMethods
   TextEditingController vehicleModelTextEditingController = TextEditingController();
   TextEditingController vehicleColorTextEditingController = TextEditingController();
   TextEditingController vehiclePlateNumberTextEditingController = TextEditingController();
+  TextEditingController carTextEditingController = TextEditingController();
 
   // Check internet connection
   checkConnectivity(BuildContext context) async

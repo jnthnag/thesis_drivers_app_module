@@ -112,7 +112,7 @@ class _TripsPageState extends State<TripsPage>
                     child: Column(
                       children: [
 
-                        Image.asset("assets/images/tripscompleted.png", width: 150,),
+                        Image.asset("assets/images/uberexec.png", width: 150,),
 
                         const SizedBox(
                           height: 10,
