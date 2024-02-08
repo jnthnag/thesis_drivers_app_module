@@ -370,7 +370,6 @@ class _NewTripPageState extends State<NewTripPage>
     saveDriverDataToTripInfo();
   }
 
-
   /// START OF WIDGET BUILD
   @override
   Widget build(BuildContext context)

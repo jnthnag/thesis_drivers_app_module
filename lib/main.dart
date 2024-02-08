@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:thesis_drivers_app_module/firebase_options.dart';
+import 'package:thesis_drivers_app_module/pages/dashboard.dart';
 import 'package:thesis_drivers_app_module/pages/home_page.dart';
 
 import 'authentication/login_screen.dart';
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
 
       ),
       // if user is not logged in -> LoginScreen else -> Resume to Home Page
-      home: FirebaseAuth.instance.currentUser == null ? LoginScreen() : HomePage(),
+      home: FirebaseAuth.instance.currentUser == null ? LoginScreen() : Dashboard(),
     );
   }
 }
