@@ -42,7 +42,7 @@ class _ProfilePageState extends State<ProfilePage>
       body: Center(
         child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
 
               //image
@@ -77,6 +77,7 @@ class _ProfilePageState extends State<ProfilePage>
                     filled: true,
                     fillColor: Colors.white24,
                     border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -102,6 +103,7 @@ class _ProfilePageState extends State<ProfilePage>
                     filled: true,
                     fillColor: Colors.white24,
                     border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -127,6 +129,7 @@ class _ProfilePageState extends State<ProfilePage>
                     filled: true,
                     fillColor: Colors.white24,
                     border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -152,6 +155,7 @@ class _ProfilePageState extends State<ProfilePage>
                     filled: true,
                     fillColor: Colors.white24,
                     border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
