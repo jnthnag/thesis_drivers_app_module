@@ -35,14 +35,14 @@ class _NotificationDialogState extends State<NotificationDialog>
       if(tripRequestStatus == "accepted")
       {
         timer.cancel();
-        driverTripRequestTimeout = 20;
+        driverTripRequestTimeout = 120;
       }
 
       if(driverTripRequestTimeout == 0)
       {
         Navigator.pop(context);
         timer.cancel();
-        driverTripRequestTimeout = 20;
+        driverTripRequestTimeout = 120;
         audioPlayer.stop();
       }
     });
@@ -69,44 +69,50 @@ class _NotificationDialogState extends State<NotificationDialog>
         .child(FirebaseAuth.instance.currentUser!.uid)
         .child("newTripStatus");
 
-    await driverTripStatusRef.once()
-        .then((snap)
-    {
-      Navigator.pop(context);
-      Navigator.pop(context);
+    //DatabaseReference dispatchStatusRef = FirebaseDatabase.instance.ref().child("tripRequests").child("dispatchStatus");
 
-      String newTripStatusValue = "";
-      if(snap.snapshot.value != null)
-      {
-        newTripStatusValue = snap.snapshot.value.toString();
-      }
-      else
-      {
-        common.displaySnackbar("Trip Request Not Found.", context);
-      }
 
-      if(newTripStatusValue == widget.tripDetailsInfo!.tripID)
+    driverTripStatusRef.once().then((dataSnapshot) async {
+      await driverTripStatusRef.once()
+          .then((snap)
       {
-        driverTripStatusRef.set("accepted");
+        Navigator.pop(context);
+        Navigator.pop(context);
 
-        //disable homepage location updates
-        common.turnOffLocationUpdatesForHomePage();
+        String newTripStatusValue = "";
+        if(snap.snapshot.value != null)
+        {
+          newTripStatusValue = snap.snapshot.value.toString();
+        }
+        else
+        {
+          common.displaySnackbar("Trip Request Not Found.", context);
+        }
 
-        Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo)));
-      }
-      else if(newTripStatusValue == "cancelled")
-      {
-        common.displaySnackbar("Trip Request has been Cancelled by user.", context);
-      }
-      else if(newTripStatusValue == "timeout")
-      {
-        common.displaySnackbar("Trip Request timed out.", context);
-      }
-      else
-      {
-        common.displaySnackbar("Trip Request removed. Not Found.", context);
-      }
+        if(newTripStatusValue == widget.tripDetailsInfo!.tripID)
+        {
+          driverTripStatusRef.set("accepted");
+
+          //disable homepage location updates
+          common.turnOffLocationUpdatesForHomePage();
+
+          Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo)));
+        }
+        else if(newTripStatusValue == "cancelled")
+        {
+          common.displaySnackbar("Trip Request has been Cancelled by user.", context);
+        }
+        else if(newTripStatusValue == "timeout")
+        {
+          common.displaySnackbar("Trip Request timed out.", context);
+        }
+        else
+        {
+          common.displaySnackbar("Trip Request removed. Not Found.", context);
+        }
+      });
     });
+
   }
 
   @override

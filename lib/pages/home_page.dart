@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
 
     LatLng LatLngUserPosition = LatLng(currentPositionOfDriver!.latitude, currentPositionOfDriver!.longitude);
 
-    CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 15);
+    CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 75);
 
     controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -55,6 +56,17 @@ class _NewTripPageState extends State<NewTripPage>
         carMarkerIcon = valueIcon;
       });
     }
+  }
+
+  obtainWaypoints() async {
+    var currentTripID = widget.newTripDetailsInfo!.tripID;
+    var tripIDRef = FirebaseDatabase.instance.ref().child("tripRequests");
+    tripIDRef.onValue.listen((snap) {
+      List waypoints = [];
+      if((snap.snapshot.value) == currentTripID){
+        waypoints.add({"address":tripIDRef.child(currentTripID!).child("pickUpAddress")});
+      }
+    });
   }
 
   obtainDirectionAndDrawRoute(sourceLocationLatLng, destinationLocationLatLng) async
@@ -183,7 +195,7 @@ class _NewTripPageState extends State<NewTripPage>
 
   getLiveLocationUpdatesOfDriver()
   {
-    LatLng lastPositionLatLng = LatLng(0, 0);
+
 
     positionStreamNewTripPage = Geolocator.getPositionStream().listen((Position positionDriver)
     {
@@ -205,8 +217,6 @@ class _NewTripPageState extends State<NewTripPage>
         markersSet.removeWhere((element) => element.markerId.value == "carMarkerID");
         markersSet.add(carMarker);
       });
-
-      lastPositionLatLng = driverCurrentPositionLatLng;
 
       //update Trip Details Information
       updateTripDetailsInformation();
