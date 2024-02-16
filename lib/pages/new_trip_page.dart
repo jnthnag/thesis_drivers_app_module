@@ -58,7 +58,7 @@ class _NewTripPageState extends State<NewTripPage>
     }
   }
 
-  obtainWaypoints() async {
+  /*obtainWaypoints() async {
     var currentTripID = widget.newTripDetailsInfo!.tripID;
     var tripIDRef = FirebaseDatabase.instance.ref().child("tripRequests");
     tripIDRef.onValue.listen((snap) {
@@ -67,7 +67,7 @@ class _NewTripPageState extends State<NewTripPage>
         waypoints.add({"address":tripIDRef.child(currentTripID!).child("pickUpAddress")});
       }
     });
-  }
+  }*/
 
   obtainDirectionAndDrawRoute(sourceLocationLatLng, destinationLocationLatLng) async
   {

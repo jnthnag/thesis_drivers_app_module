@@ -7,6 +7,7 @@ import '../methods/common_methods.dart';
 import '../models/trip_details.dart';
 import '../pages/new_trip_page.dart';
 import 'loading_dialog.dart';
+import 'dart:developer';
 
 
 class NotificationDialog extends StatefulWidget
@@ -22,6 +23,7 @@ class NotificationDialog extends StatefulWidget
 class _NotificationDialogState extends State<NotificationDialog>
 {
   String tripRequestStatus = "";
+  List<String> waypoints = [];
   CommonMethods common = CommonMethods();
 
   cancelNotificationDialogAfter20Sec()
@@ -64,6 +66,7 @@ class _NotificationDialogState extends State<NotificationDialog>
       builder: (BuildContext context) => LoadingDialog(messageText: 'please wait...',),
     );
 
+    // initializing a location in the database
     DatabaseReference driverTripStatusRef = FirebaseDatabase.instance.ref()
         .child("drivers")
         .child(FirebaseAuth.instance.currentUser!.uid)
@@ -91,8 +94,12 @@ class _NotificationDialogState extends State<NotificationDialog>
 
         if(newTripStatusValue == widget.tripDetailsInfo!.tripID)
         {
-          driverTripStatusRef.set("accepted");
+          if (driverTripStatusRef != "accepted")
+            {
+              waypoints.add(widget.tripDetailsInfo!.tripID.toString());
 
+            }
+          driverTripStatusRef.set("accepted");
           //disable homepage location updates
           common.turnOffLocationUpdatesForHomePage();
 
@@ -114,6 +121,18 @@ class _NotificationDialogState extends State<NotificationDialog>
     });
 
   }
+
+
+  /*obtainWaypoints() async {
+    var currentTripID = widget.newTripDetailsInfo!.tripID;
+    var tripIDRef = FirebaseDatabase.instance.ref().child("tripRequests");
+    tripIDRef.onValue.listen((snap) {
+      List waypoints = [];
+      if((snap.snapshot.value) == currentTripID){
+        waypoints.add({"address":tripIDRef.child(currentTripID!).child("pickUpAddress")});
+      }
+    });
+  }*/
 
   @override
   Widget build(BuildContext context)
@@ -248,6 +267,7 @@ class _NotificationDialogState extends State<NotificationDialog>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
 
+                  // DECLINE BUTTON
                   Expanded(
                     child: ElevatedButton(
                       onPressed: ()
@@ -269,6 +289,32 @@ class _NotificationDialogState extends State<NotificationDialog>
 
                   const SizedBox(width: 10,),
 
+                  // ACCEPT MORE BUTTON
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: ()
+                      {
+                        audioPlayer.stop();
+                        Navigator.pop(context);
+                        // function to add new trip details to list
+
+                        checkAvailabilityOfTripRequest(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                      child: const Text(
+                        "ACCEPT MORE",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10,),
+
+                  // BEGIN TRIP BUTTON
                   Expanded(
                     child: ElevatedButton(
                       onPressed: ()
@@ -285,7 +331,7 @@ class _NotificationDialogState extends State<NotificationDialog>
                         backgroundColor: Colors.green,
                       ),
                       child: const Text(
-                        "ACCEPT",
+                        "BEGIN TRIP",
                         style: TextStyle(
                           color: Colors.white,
                         ),
