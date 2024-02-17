@@ -20,5 +20,6 @@ class TripDetails
         this.dropOffAddress,
         this.userName,
         this.userPhone
-      });
+      }
+      );
 }

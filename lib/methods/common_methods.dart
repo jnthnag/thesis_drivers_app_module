@@ -81,6 +81,69 @@ class CommonMethods
     }
   }
 
+  static sendRequestToRoutesAPI(LatLng source,LatLng destination, waypoints, String apiUrl) async {
+    try {
+      final response = await http.post(
+        body: jsonEncode({
+          "origin": {
+            "location":{
+              "latitude": {source.latitude},
+              "longitude":{source.longitude},
+            },
+          },
+          "destination": {
+            "address":"TBICAI, 56-B 4th Ave, Taguig, Metro Manila",
+          },
+          "intermediates": [
+            waypoints
+          ],
+          "travelMode": "DRIVE",
+          "extraComputations": ["TRAFFIC_ON_POLYLINE"],
+          "routingPreference": "TRAFFIC_AWARE_OPTIMAL",
+          "polylineQuality": "HIGH_QUALITY",
+          "routeModifiers": {
+            "avoidTolls": true,
+          },
+          "computeAlternativeRoutes": false,
+          "languageCode": "en-US",
+          "units": "IMPERIAL"
+        }),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': 'AIzaSyDjkmC-NlWZRmKqYttx8x-e_G29ZNFSLL4',
+          'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.travelAdvisory.speedReadingIntervals,routes.legs.polyline.encodedPolyline,routes.legs.travelAdvisory.speedReadingIntervals',
+        },
+        Uri.parse(apiUrl),
+      );
+      if (response.statusCode == 200) {
+        var dataDecoded = jsonDecode(response.body);
+        return dataDecoded;
+      }
+    }
+    catch (errorMsg) {
+      return "error";
+    }
+  }
+
+  ///routes API
+  static Future<DirectionDetails?> postData(LatLng source,LatLng destination, waypoints) async {
+    String apiUrl = "https://routes.googleapis.com/directions/v2:computeRoutes";
+
+    var responseData = await sendRequestToRoutesAPI(source,destination, waypoints,apiUrl);
+
+    if (responseData == "error") {
+      return null;
+    }
+
+    DirectionDetails detailsModel = DirectionDetails();
+    detailsModel.distanceValueDigits = responseData["routes"][0]["distance"];
+    detailsModel.durationValueDigits = responseData["routes"][0]["duration"];
+    detailsModel.encodedPoints = responseData["routes"][0]["polyline"]["encodedPolyline"];
+
+
+    return detailsModel;
+  }
+
   ///Directions API
   static Future<DirectionDetails?> getDirectionDetailsFromAPI(LatLng source, LatLng destination) async
   {

@@ -13,12 +13,15 @@ import 'package:thesis_drivers_app_module/global/global_var.dart';
 import 'package:thesis_drivers_app_module/models/trip_details.dart';
 import 'package:thesis_drivers_app_module/widgets/loading_dialog.dart';
 import 'package:thesis_drivers_app_module/widgets/notification_dialog.dart';
+import 'dart:developer';
 
 class PushNotificationSystem
 {
   FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
   StreamSubscription<DatabaseEvent>? DispatchStreamSubscription;
-
+  List<String> tripIDs = [];
+  List<LatLng> pickUpLatLangs = [];
+  List<String> pickUpAddresses = [];
 
   // generate unique FCM token for each driver
   Future<String?> generateDeviceRegistrationToken() async
@@ -39,7 +42,6 @@ class PushNotificationSystem
 
   // listening for new notifications (covers 3 scenarios)
   startListeningForNewNotification(BuildContext context){
-    String dispatchApprove = '';
     // 1. App is terminated (app completely closed)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? messageRemote)
     {
@@ -82,12 +84,15 @@ class PushNotificationSystem
     var dispatchStatus =  FirebaseDatabase.instance.ref().child("tripRequests").child(tripID);
      await dispatchStatus.once().then((snap) {
          if((snap.snapshot.value as Map)["dispatchStatus"] == "accept" ){
+           tripIDs.add(tripID);
+           log("tripIDs: $tripIDs");
            showDialog(
              context: context,
              barrierDismissible: false,
              builder: (BuildContext context) =>
                  LoadingDialog(messageText: "Getting Details"),
            );
+           DatabaseReference statusRef = FirebaseDatabase.instance.ref().child("tripRequests").child(tripID).child("status");
           DatabaseReference tripRequestRef = FirebaseDatabase.instance.ref().child("tripRequests").child(tripID);
           tripRequestRef.once().then((dataSnapshot) {
             Navigator.pop(context);
@@ -102,8 +107,12 @@ class PushNotificationSystem
             double pickUpLat = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["latitude"]);
             double pickUpLng = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["longitude"]);
             tripDetailsInfo.pickUpLatLng = LatLng(pickUpLat, pickUpLng);
+            pickUpLatLangs.add(LatLng(pickUpLat, pickUpLng));
+            log("pickUpLatLangs: $pickUpLatLangs");
 
             tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
+            pickUpAddresses.add((dataSnapshot.snapshot.value! as Map)["pickUpAddress"]);
+            log("pickUpAddresses : $pickUpAddresses");
 
             double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);
             double dropOffLng = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["longitude"]);
@@ -116,6 +125,8 @@ class PushNotificationSystem
             (dataSnapshot.snapshot.value! as Map)["userName"];
             tripDetailsInfo.userPhone =
             (dataSnapshot.snapshot.value! as Map)["userPhone"];
+
+            statusRef.set("acceptMore");
 
             tripDetailsInfo.tripID = tripID;
 

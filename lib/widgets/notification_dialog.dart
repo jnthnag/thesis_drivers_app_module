@@ -23,8 +23,10 @@ class NotificationDialog extends StatefulWidget
 class _NotificationDialogState extends State<NotificationDialog>
 {
   String tripRequestStatus = "";
-  List<String> waypoints = [];
+  String trip = "";
   CommonMethods common = CommonMethods();
+  List<String> waypoints = [];
+  int tripCtr = 1;
 
   cancelNotificationDialogAfter20Sec()
   {
@@ -35,6 +37,12 @@ class _NotificationDialogState extends State<NotificationDialog>
       driverTripRequestTimeout = driverTripRequestTimeout - 1;
 
       if(tripRequestStatus == "accepted")
+      {
+        timer.cancel();
+        driverTripRequestTimeout = 120;
+      }
+
+      if(tripRequestStatus == "acceptMore")
       {
         timer.cancel();
         driverTripRequestTimeout = 120;
@@ -66,14 +74,10 @@ class _NotificationDialogState extends State<NotificationDialog>
       builder: (BuildContext context) => LoadingDialog(messageText: 'please wait...',),
     );
 
-    // initializing a location in the database
     DatabaseReference driverTripStatusRef = FirebaseDatabase.instance.ref()
         .child("drivers")
         .child(FirebaseAuth.instance.currentUser!.uid)
         .child("newTripStatus");
-
-    //DatabaseReference dispatchStatusRef = FirebaseDatabase.instance.ref().child("tripRequests").child("dispatchStatus");
-
 
     driverTripStatusRef.once().then((dataSnapshot) async {
       await driverTripStatusRef.once()
@@ -94,15 +98,10 @@ class _NotificationDialogState extends State<NotificationDialog>
 
         if(newTripStatusValue == widget.tripDetailsInfo!.tripID)
         {
-          if (driverTripStatusRef != "accepted")
-            {
-              waypoints.add(widget.tripDetailsInfo!.tripID.toString());
-
-            }
           driverTripStatusRef.set("accepted");
+
           //disable homepage location updates
           common.turnOffLocationUpdatesForHomePage();
-
           Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo)));
         }
         else if(newTripStatusValue == "cancelled")
@@ -122,17 +121,88 @@ class _NotificationDialogState extends State<NotificationDialog>
 
   }
 
+  saveDriverDataToTripInfoAcceptMore() async
+  {
+    Map<String, dynamic> driverDataMap =
+    {
+      "status": "acceptMore",
+      "driverID": FirebaseAuth.instance.currentUser!.uid,
+      "driverName": driverName,
+      "driverPhone": driverPhone,
+      "driverPhoto": driverPhoto,
+      "carDetails": carColor + " - " + carModel + " - " + carPlateNumber,
+    };
 
-  /*obtainWaypoints() async {
-    var currentTripID = widget.newTripDetailsInfo!.tripID;
-    var tripIDRef = FirebaseDatabase.instance.ref().child("tripRequests");
-    tripIDRef.onValue.listen((snap) {
-      List waypoints = [];
-      if((snap.snapshot.value) == currentTripID){
-        waypoints.add({"address":tripIDRef.child(currentTripID!).child("pickUpAddress")});
-      }
+    Map<String, dynamic> driverCurrentLocation =
+    {
+      'latitude': driverCurrentPosition!.latitude.toString(),
+      'longitude': driverCurrentPosition!.longitude.toString(),
+    };
+
+    await FirebaseDatabase.instance.ref()
+        .child("tripRequests")
+        .child(widget.tripDetailsInfo!.tripID!)
+        .update(driverDataMap);
+
+    await FirebaseDatabase.instance.ref()
+        .child("tripRequests")
+        .child(widget.tripDetailsInfo!.tripID!)
+        .child("driverLocation").update(driverCurrentLocation);
+  }
+
+  checkAvailabilityOfTripRequestAcceptMore(BuildContext context) async
+  {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => LoadingDialog(messageText: 'please wait...',),
+    );
+
+    DatabaseReference driverTripStatusRef = FirebaseDatabase.instance.ref()
+        .child("drivers")
+        .child(FirebaseAuth.instance.currentUser!.uid)
+        .child("newTripStatus");
+
+    //DatabaseReference dispatchStatusRef = FirebaseDatabase.instance.ref().child("tripRequests").child("dispatchStatus");
+
+
+    driverTripStatusRef.once().then((dataSnapshot) async {
+      Navigator.pop(context);
+      await driverTripStatusRef.once()
+          .then((snap)
+      {
+        String newTripStatusValue = "";
+        if(snap.snapshot.value != null)
+        {
+          newTripStatusValue = snap.snapshot.value.toString();
+        }
+        else
+        {
+          common.displaySnackbar("Trip Request Not Found.", context);
+        }
+
+        if(newTripStatusValue == widget.tripDetailsInfo!.tripID)
+        {
+          driverTripStatusRef.set("acceptMore");
+          saveDriverDataToTripInfoAcceptMore();
+          common.displaySnackbar("Trip has been added.", context);
+        }
+        else if(newTripStatusValue == "cancelled")
+        {
+          common.displaySnackbar("Trip Request has been Cancelled by user.", context);
+        }
+        else if(newTripStatusValue == "timeout")
+        {
+          common.displaySnackbar("Trip Request timed out.", context);
+        }
+        else
+        {
+          common.displaySnackbar("Trip Request removed. Not Found.", context);
+        }
+      });
     });
-  }*/
+
+  }
 
   @override
   Widget build(BuildContext context)
@@ -267,7 +337,6 @@ class _NotificationDialogState extends State<NotificationDialog>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
 
-                  // DECLINE BUTTON
                   Expanded(
                     child: ElevatedButton(
                       onPressed: ()
@@ -289,7 +358,6 @@ class _NotificationDialogState extends State<NotificationDialog>
 
                   const SizedBox(width: 10,),
 
-                  // ACCEPT MORE BUTTON
                   Expanded(
                     child: ElevatedButton(
                       onPressed: ()
@@ -297,14 +365,17 @@ class _NotificationDialogState extends State<NotificationDialog>
                         audioPlayer.stop();
                         Navigator.pop(context);
                         // function to add new trip details to list
-
-                        checkAvailabilityOfTripRequest(context);
+                        setState(() {
+                          tripRequestStatus = "acceptMore";
+                        });
+                        checkAvailabilityOfTripRequestAcceptMore(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
                       child: const Text(
                         "ACCEPT MORE",
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white,
                         ),
@@ -314,7 +385,6 @@ class _NotificationDialogState extends State<NotificationDialog>
 
                   const SizedBox(width: 10,),
 
-                  // BEGIN TRIP BUTTON
                   Expanded(
                     child: ElevatedButton(
                       onPressed: ()
@@ -331,7 +401,7 @@ class _NotificationDialogState extends State<NotificationDialog>
                         backgroundColor: Colors.green,
                       ),
                       child: const Text(
-                        "BEGIN TRIP",
+                        "ACCEPT",
                         style: TextStyle(
                           color: Colors.white,
                         ),
