@@ -79,6 +79,15 @@ class PushNotificationSystem
     });
   }
 
+  // sending
+  /*sendPickUpAdressesToDataBase(value) async
+  {
+    await FirebaseDatabase.instance.ref()
+        .child("newTripStatus")
+        .child("pickUpAdresses")
+        .set(value);
+  }*/
+
 
 
   retrieveTripRequestInfo(tripID, BuildContext context) async {
@@ -109,10 +118,17 @@ class PushNotificationSystem
             double pickUpLng = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["longitude"]);
             tripDetailsInfo.pickUpLatLng = LatLng(pickUpLat, pickUpLng);
             pickUpLatLangs.add(LatLng(pickUpLat, pickUpLng));
+
             log("pickUpLatLangs: $pickUpLatLangs");
 
             tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
             pickUpAddresses.add({"address": tripDetailsInfo.pickUpAddress});
+
+            /*for (int i = 0; i < pickUpAddresses.length; i++) {
+              sendPickUpAdressesToDataBase(pickUpAddresses[i]);
+            }*/
+
+
             log("pickUpAddresses : $pickUpAddresses");
 
             double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);

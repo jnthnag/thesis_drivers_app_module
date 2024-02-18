@@ -49,11 +49,27 @@ class _EarningsPageState extends State<EarningsPage>
           Center(
 
             child: Container(
-              color: Colors.green,
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.green.shade200,
+                        Colors.green.shade300,
+                        Colors.green.shade400,
+                        Colors.green.shade500,
+                      ],
+                      stops: const [
+                        0.1,
+                        0.3,
+                        0.9,
+                        1.0
+                      ])
+              ),
               width: MediaQuery.of(context).size.width,
               height: (MediaQuery.of(context).size.height) - 100,
               child: Padding(
-                padding: const EdgeInsets.all(75.0),
+                padding: const EdgeInsets.all(55.0),
                 child: Column(
                   children: [
 
@@ -70,12 +86,25 @@ class _EarningsPageState extends State<EarningsPage>
                       ),
                     ),
 
-                    Text(
-                      "\₱ ${driverEarnings}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 300,
+                      height: 150,
+                      padding: const EdgeInsets.all(15.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue, Colors.green], // Example gradient colors
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10), // Optional: Add border radius for rounded corners
+                      ),
+                      child: Text(
+                        "\₱ ${driverEarnings}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
 
