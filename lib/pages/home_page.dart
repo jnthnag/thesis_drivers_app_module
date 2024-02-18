@@ -153,7 +153,7 @@ class _HomePageState extends State<HomePage> {
       key:sKey,
       drawer: Container(
         width: 230,
-        color: Colors.amber,
+        color: Colors.green.shade300,
         child: Drawer(
           backgroundColor: Colors.white10,
           child: ListView(
@@ -294,7 +294,7 @@ class _HomePageState extends State<HomePage> {
                     ]
                 ),
                 child: CircleAvatar(
-                  backgroundColor: Colors.amber,
+                  backgroundColor: Colors.green.shade400,
                   radius: 20,
                   child: Icon(
                     isDrawerOpened == true ? Icons.menu : Icons.close,
@@ -357,7 +357,7 @@ class _HomePageState extends State<HomePage> {
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         fontSize: 22,
-                                        color: Colors.white70,
+                                        color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),

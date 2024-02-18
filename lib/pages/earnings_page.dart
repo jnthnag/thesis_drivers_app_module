@@ -17,7 +17,6 @@ class _EarningsPageState extends State<EarningsPage>
   {
     DatabaseReference driversRef = FirebaseDatabase.instance.ref().child("drivers");
 
-
     await driversRef.child(FirebaseAuth.instance.currentUser!.uid)
         .once()
         .then((snap)
@@ -44,14 +43,17 @@ class _EarningsPageState extends State<EarningsPage>
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+
         children: [
 
           Center(
+
             child: Container(
-              color: Colors.lightGreen,
-              width: 400,
+              color: Colors.green,
+              width: MediaQuery.of(context).size.width,
+              height: (MediaQuery.of(context).size.height) - 100,
               child: Padding(
-                padding: const EdgeInsets.all(18.0),
+                padding: const EdgeInsets.all(75.0),
                 child: Column(
                   children: [
 

@@ -21,7 +21,7 @@ class PushNotificationSystem
   StreamSubscription<DatabaseEvent>? DispatchStreamSubscription;
   List<String> tripIDs = [];
   List<LatLng> pickUpLatLangs = [];
-  List<String> pickUpAddresses = [];
+  List pickUpAddresses = [];
 
   // generate unique FCM token for each driver
   Future<String?> generateDeviceRegistrationToken() async
@@ -112,7 +112,7 @@ class PushNotificationSystem
             log("pickUpLatLangs: $pickUpLatLangs");
 
             tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
-            pickUpAddresses.add(tripDetailsInfo.pickUpAddress.toString());
+            pickUpAddresses.add({"address": tripDetailsInfo.pickUpAddress});
             log("pickUpAddresses : $pickUpAddresses");
 
             double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);
