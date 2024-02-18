@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class EarningsPage extends StatefulWidget {
   const EarningsPage({super.key});
@@ -54,15 +55,15 @@ class _EarningsPageState extends State<EarningsPage>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.green.shade200,
-                        Colors.green.shade300,
-                        Colors.green.shade400,
-                        Colors.green.shade500,
+                        Colors.blueAccent.shade400,
+                        Colors.blueGrey.shade400,
+                        Color(0xD8FFF200),
+                        Colors.blueGrey.shade400,
                       ],
                       stops: const [
                         0.1,
                         0.3,
-                        0.9,
+                        0.7,
                         1.0
                       ])
               ),
@@ -73,37 +74,48 @@ class _EarningsPageState extends State<EarningsPage>
                 child: Column(
                   children: [
 
-                    Image.asset("assets/images/earningsicon.png", width: 120,),
+                    Image.asset("assets/images/earningsicon2.png", width: 120,),
 
                     const SizedBox(
-                      height: 10,
+                      height: 20,
                     ),
 
                     const Text(
                       "Total Earnings:",
                       style: TextStyle(
                         color: Colors.white,
+                        fontSize: 15,
+                        fontFamily: "Aeonik",
                       ),
+                    ),
+
+                    const SizedBox(
+                      height: 10,
                     ),
 
                     Container(
                       width: 300,
                       height: 150,
-                      padding: const EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.only(left: 15, top: 10),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue, Colors.green], // Example gradient colors
+                        gradient: const LinearGradient(
+                          colors: [
+                            Colors.blue,
+                            Colors.yellow
+                          ], // Example gradient colors
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(10), // Optional: Add border radius for rounded corners
                       ),
+
                       child: Text(
-                        "\₱ ${driverEarnings}",
+                        "PHP $driverEarnings",
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 25,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'Aeonik',
                         ),
                       ),
                     ),

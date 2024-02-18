@@ -153,7 +153,16 @@ class _HomePageState extends State<HomePage> {
       key:sKey,
       drawer: Container(
         width: 230,
-        color: Colors.green.shade300,
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.blue,
+                Colors.yellow
+              ], // Example gradient colors
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+        ),
         child: Drawer(
           backgroundColor: Colors.white10,
           child: ListView(
@@ -161,11 +170,18 @@ class _HomePageState extends State<HomePage> {
 
               //header
               Container(
-                color: Colors.amber,
+                color: Colors.blue,
                 height: 160,
                 child: DrawerHeader(
                   decoration: const BoxDecoration(
-                    color: Colors.amber,
+                    gradient: LinearGradient(
+                        colors: [
+                        Colors.blue,
+                        Colors.yellow
+                      ], // Example gradient colors
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -191,7 +207,8 @@ class _HomePageState extends State<HomePage> {
                           const Text(
                             "Profile",
                             style: TextStyle(
-                              color: Colors.indigo,
+                              fontFamily: "Aeonik",
+                              color: Colors.white,
                             ),
                           )
                         ],
@@ -199,12 +216,6 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-              ),
-
-              const Divider(
-                height: 1,
-                color: Colors.indigo,
-                thickness: 1,
               ),
 
               const SizedBox(height: 10,),
@@ -219,9 +230,20 @@ class _HomePageState extends State<HomePage> {
                       onPressed: (){
                         Navigator.push(context, MaterialPageRoute(builder: (c) => AboutPage()));
                       },
-                      icon: const Icon(Icons.info, color: Colors.indigo,)
+                      icon: const Icon(
+                        Icons.info,
+                        color:
+                            Colors.black,
+                      )
                   ),
-                  title: const Text("About", style: TextStyle(color: Colors.indigo),),
+                  title: const Text(
+                    "About",
+                    style:
+                        TextStyle(
+                          fontFamily: "Aeonik",
+                            color: Colors.white
+                        ),
+                  ),
                 ),
               ),
 
@@ -236,9 +258,9 @@ class _HomePageState extends State<HomePage> {
                         FirebaseAuth.instance.signOut();
                         Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
                       },
-                      icon: const Icon(Icons.logout, color: Colors.indigo,)
+                      icon: const Icon(Icons.logout, color: Colors.black,)
                   ),
-                  title: const Text("Logout", style: TextStyle(color: Colors.indigo),),
+                  title: const Text("Logout", style: TextStyle(fontFamily: "Aeonik", color: Colors.white),),
 
                 ),
               ),
@@ -298,7 +320,7 @@ class _HomePageState extends State<HomePage> {
                   radius: 20,
                   child: Icon(
                     isDrawerOpened == true ? Icons.menu : Icons.close,
-                    color: Colors.indigo,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -369,8 +391,9 @@ class _HomePageState extends State<HomePage> {
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         fontSize: 22,
-                                        color: Colors.white30,
+                                        color: Colors.white,
                                         fontWeight: FontWeight.bold,
+                                        fontFamily: "Aeon"
                                       ),
                                     ),
 

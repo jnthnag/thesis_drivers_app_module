@@ -79,17 +79,6 @@ class PushNotificationSystem
     });
   }
 
-  // sending
-  /*sendPickUpAdressesToDataBase(value) async
-  {
-    await FirebaseDatabase.instance.ref()
-        .child("newTripStatus")
-        .child("pickUpAdresses")
-        .set(value);
-  }*/
-
-
-
   retrieveTripRequestInfo(tripID, BuildContext context) async {
     var dispatchStatus =  FirebaseDatabase.instance.ref().child("tripRequests").child(tripID);
      await dispatchStatus.once().then((snap) {
