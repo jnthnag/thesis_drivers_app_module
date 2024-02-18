@@ -17,6 +17,7 @@ class _EarningsPageState extends State<EarningsPage>
   {
     DatabaseReference driversRef = FirebaseDatabase.instance.ref().child("drivers");
 
+
     await driversRef.child(FirebaseAuth.instance.currentUser!.uid)
         .once()
         .then((snap)
@@ -24,7 +25,7 @@ class _EarningsPageState extends State<EarningsPage>
       if((snap.snapshot.value as Map)["earnings"] != null)
       {
         setState(() {
-          driverEarnings = ((snap.snapshot.value as Map)["earnings"]).toString();
+          driverEarnings = (((snap.snapshot.value as Map)["earnings"])*55.95).toString();
         });
       }
     });
@@ -47,8 +48,8 @@ class _EarningsPageState extends State<EarningsPage>
 
           Center(
             child: Container(
-              color: Colors.indigo,
-              width: 300,
+              color: Colors.lightGreen,
+              width: 400,
               child: Padding(
                 padding: const EdgeInsets.all(18.0),
                 child: Column(
@@ -68,7 +69,7 @@ class _EarningsPageState extends State<EarningsPage>
                     ),
 
                     Text(
-                      "\$ " + driverEarnings.substring(0, 4),
+                      "\₱ ${driverEarnings}",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 30,

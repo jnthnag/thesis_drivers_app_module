@@ -42,6 +42,7 @@ class PushNotificationSystem
 
   // listening for new notifications (covers 3 scenarios)
   startListeningForNewNotification(BuildContext context){
+    String dispatchApprove = '';
     // 1. App is terminated (app completely closed)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? messageRemote)
     {
@@ -125,8 +126,6 @@ class PushNotificationSystem
             (dataSnapshot.snapshot.value! as Map)["userName"];
             tripDetailsInfo.userPhone =
             (dataSnapshot.snapshot.value! as Map)["userPhone"];
-
-            statusRef.set("acceptMore");
 
             tripDetailsInfo.tripID = tripID;
 
