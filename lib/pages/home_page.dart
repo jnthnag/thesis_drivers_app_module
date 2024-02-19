@@ -152,38 +152,27 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key:sKey,
       drawer: Container(
-        width: 230,
+        width: MediaQuery.of(context).size.width * 0.55,
         decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.blue,
-                Colors.yellow
-              ], // Example gradient colors
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            )
+            color: Color(0xFF61A3BA),
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(18), // More rounded on the top-right corner
+              bottomRight: Radius.circular(18), // More rounded on the bottom-right corner
+          ),
         ),
         child: Drawer(
-          backgroundColor: Colors.white10,
+          backgroundColor: Color(0xFF61A3BA),
           child: ListView(
             children: [
 
               //header
               Container(
-                color: Colors.blue,
                 height: 160,
                 child: DrawerHeader(
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [
-                        Colors.blue,
-                        Colors.yellow
-                      ], // Example gradient colors
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: Color(0xFF61A3BA)
                   ),
-                  child: Row(
+                  child: Column(
                     children: [
                       Image.asset(
                         "assets/images/avatarman.png",
@@ -233,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(
                         Icons.info,
                         color:
-                            Colors.black,
+                            Colors.white,
                       )
                   ),
                   title: const Text(
@@ -258,9 +247,18 @@ class _HomePageState extends State<HomePage> {
                         FirebaseAuth.instance.signOut();
                         Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
                       },
-                      icon: const Icon(Icons.logout, color: Colors.black,)
+                      icon: const Icon(
+                        Icons.logout,
+                        color: Colors.white,
+                      )
                   ),
-                  title: const Text("Logout", style: TextStyle(fontFamily: "Aeonik", color: Colors.white),),
+                  title: const Text(
+                    "Logout",
+                    style: TextStyle(
+                        fontFamily: "Aeonik",
+                        color: Colors.white
+                    ),
+                  ),
 
                 ),
               ),
@@ -330,7 +328,7 @@ class _HomePageState extends State<HomePage> {
 
           Container(
             height: 135,
-            width: double.infinity,
+            width: MediaQuery.of(context).size.width,
             color: Colors.black54,
           ),
           

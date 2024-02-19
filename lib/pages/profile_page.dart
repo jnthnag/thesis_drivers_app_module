@@ -83,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.lightBlueAccent,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -109,7 +109,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.lightBlueAccent,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -135,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.lightBlueAccent,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -161,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.lightBlueAccent,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
