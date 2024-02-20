@@ -39,7 +39,15 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: Container(
+        decoration: const BoxDecoration(
+        gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.blue, Colors.yellowAccent], // Adjust colors as needed
+    ),
+    ),
+      child: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -75,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.white24,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -101,7 +109,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.white24,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -127,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.white24,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -153,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage>
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                   decoration: const InputDecoration(
                     filled: true,
-                    fillColor: Colors.white24,
+                    fillColor: Color(0xFF61A3BA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       borderSide: BorderSide(
@@ -181,11 +189,16 @@ class _ProfilePageState extends State<ProfilePage>
                   Navigator.push(context, MaterialPageRoute(builder: (c)=> LoginScreen()));
                 },
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink,
+                    backgroundColor: Colors.blueAccent,
                     padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 18)
                 ),
                 child: const Text(
-                    "Logout"
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+
+
                 ),
               ),
 
@@ -193,6 +206,6 @@ class _ProfilePageState extends State<ProfilePage>
           ),
         ),
       ),
-    );
+    ),);
   }
 }

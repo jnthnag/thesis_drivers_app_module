@@ -157,22 +157,27 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key:sKey,
       drawer: Container(
-        width: 230,
-        color: Colors.amber,
+        width: MediaQuery.of(context).size.width * 0.55,
+        decoration: const BoxDecoration(
+            color: Color(0xFF61A3BA),
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(18), // More rounded on the top-right corner
+              bottomRight: Radius.circular(18), // More rounded on the bottom-right corner
+          ),
+        ),
         child: Drawer(
-          backgroundColor: Colors.white10,
+          backgroundColor: Color(0xFF61A3BA),
           child: ListView(
             children: [
 
               //header
               Container(
-                color: Colors.amber,
                 height: 160,
                 child: DrawerHeader(
                   decoration: const BoxDecoration(
-                    color: Colors.amber,
+                    color: Color(0xFF61A3BA)
                   ),
-                  child: Row(
+                  child: Column(
                     children: [
                       Image.asset(
                         "assets/images/avatarman.png",
@@ -196,7 +201,8 @@ class _HomePageState extends State<HomePage> {
                           const Text(
                             "Profile",
                             style: TextStyle(
-                              color: Colors.indigo,
+                              fontFamily: "Aeonik",
+                              color: Colors.white,
                             ),
                           )
                         ],
@@ -204,12 +210,6 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-              ),
-
-              const Divider(
-                height: 1,
-                color: Colors.indigo,
-                thickness: 1,
               ),
 
               const SizedBox(height: 10,),
@@ -224,9 +224,20 @@ class _HomePageState extends State<HomePage> {
                       onPressed: (){
                         Navigator.push(context, MaterialPageRoute(builder: (c) => AboutPage()));
                       },
-                      icon: const Icon(Icons.info, color: Colors.indigo,)
+                      icon: const Icon(
+                        Icons.info,
+                        color:
+                            Colors.white,
+                      )
                   ),
-                  title: const Text("About", style: TextStyle(color: Colors.indigo),),
+                  title: const Text(
+                    "About",
+                    style:
+                        TextStyle(
+                          fontFamily: "Aeonik",
+                            color: Colors.white
+                        ),
+                  ),
                 ),
               ),
 
@@ -241,9 +252,18 @@ class _HomePageState extends State<HomePage> {
                         FirebaseAuth.instance.signOut();
                         Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
                       },
-                      icon: const Icon(Icons.logout, color: Colors.indigo,)
+                      icon: const Icon(
+                        Icons.logout,
+                        color: Colors.white,
+                      )
                   ),
-                  title: const Text("Logout", style: TextStyle(color: Colors.indigo),),
+                  title: const Text(
+                    "Logout",
+                    style: TextStyle(
+                        fontFamily: "Aeonik",
+                        color: Colors.white
+                    ),
+                  ),
 
                 ),
               ),
@@ -299,11 +319,11 @@ class _HomePageState extends State<HomePage> {
                     ]
                 ),
                 child: CircleAvatar(
-                  backgroundColor: Colors.amber,
+                  backgroundColor: Colors.green.shade400,
                   radius: 20,
                   child: Icon(
                     isDrawerOpened == true ? Icons.menu : Icons.close,
-                    color: Colors.indigo,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -376,7 +396,7 @@ class _HomePageState extends State<HomePage> {
 
           Container(
             height: 135,
-            width: double.infinity,
+            width: MediaQuery.of(context).size.width,
             color: Colors.black54,
           ),
           
@@ -425,7 +445,7 @@ class _HomePageState extends State<HomePage> {
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         fontSize: 22,
-                                        color: Colors.white70,
+                                        color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -437,8 +457,9 @@ class _HomePageState extends State<HomePage> {
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         fontSize: 22,
-                                        color: Colors.white30,
+                                        color: Colors.white,
                                         fontWeight: FontWeight.bold,
+                                        fontFamily: "Aeon"
                                       ),
                                     ),
 

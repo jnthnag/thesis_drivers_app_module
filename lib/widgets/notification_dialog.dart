@@ -135,6 +135,7 @@ class _NotificationDialogState extends State<NotificationDialog>
       "carDetails": carColor + " - " + carModel + " - " + carPlateNumber,
     };
 
+    
     Map<String, dynamic> driverCurrentLocation =
     {
       'latitude': driverCurrentPosition!.latitude.toString(),

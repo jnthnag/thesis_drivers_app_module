@@ -42,6 +42,7 @@ class PushNotificationSystem
 
   // listening for new notifications (covers 3 scenarios)
   startListeningForNewNotification(BuildContext context){
+    String dispatchApprove = '';
     // 1. App is terminated (app completely closed)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? messageRemote)
     {
@@ -78,8 +79,6 @@ class PushNotificationSystem
     });
   }
 
-
-
   retrieveTripRequestInfo(tripID, BuildContext context) async {
     var dispatchStatus =  FirebaseDatabase.instance.ref().child("tripRequests").child(tripID);
      await dispatchStatus.once().then((snap) {
@@ -108,6 +107,7 @@ class PushNotificationSystem
             double pickUpLng = double.parse((dataSnapshot.snapshot.value! as Map)["pickUpLatLng"]["longitude"]);
             tripDetailsInfo.pickUpLatLng = LatLng(pickUpLat, pickUpLng);
             pickUpLatLangs.add(LatLng(pickUpLat, pickUpLng));
+
             log("pickUpLatLangs: $pickUpLatLangs");
 
             tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
@@ -126,8 +126,6 @@ class PushNotificationSystem
             tripDetailsInfo.userPhone =
             (dataSnapshot.snapshot.value! as Map)["userPhone"];
 
-            statusRef.set("acceptMore");
-
             tripDetailsInfo.tripID = tripID;
 
             showDialog(
@@ -143,7 +141,7 @@ class PushNotificationSystem
               "latitude" : pickUpLat,
               "longitude" : pickUpLng
             };
-            
+
             DatabaseReference driverTripIDs = FirebaseDatabase.instance.ref().child("drivers")
                 .child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
 
