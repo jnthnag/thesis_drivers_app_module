@@ -3,6 +3,7 @@ import 'package:thesis_drivers_app_module/pages/earnings_page.dart';
 import 'package:thesis_drivers_app_module/pages/home_page.dart';
 import 'package:thesis_drivers_app_module/pages/profile_page.dart';
 import 'package:thesis_drivers_app_module/pages/trips_page.dart';
+import 'package:thesis_drivers_app_module/models/trip_details.dart';
 
 class Dashboard extends StatefulWidget
 {
@@ -47,15 +48,16 @@ class _DashboardState extends State<Dashboard> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context)
   {
+    TripDetails? tripDetailsInfo;
     return Scaffold(
       body: TabBarView(
         physics: const NeverScrollableScrollPhysics(),
         controller: controller,
-        children: const [
-          HomePage(),
-          EarningsPage(),
-          TripsPage(),
-          ProfilePage(),
+        children:  [
+          HomePage(tripDetailsInfo: tripDetailsInfo,),
+          const EarningsPage(),
+          const TripsPage(),
+          const ProfilePage(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

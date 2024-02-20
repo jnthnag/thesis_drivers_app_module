@@ -10,6 +10,7 @@ import 'package:thesis_drivers_app_module/global/global_var.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/direction_details.dart';
+import 'dart:developer';
 
 
 class CommonMethods
@@ -85,28 +86,33 @@ class CommonMethods
     try {
       final response = await http.post(
         body: jsonEncode({
-          "origin": {
+          "origin":{
             "location":{
-              "latitude": {source.latitude},
-              "longitude":{source.longitude},
-            },
+              "latLng":{
+                "latitude": source.latitude,
+                "longitude": source.longitude
+              }
+            }
           },
-          "destination": {
-            "address":"TBICAI, 56-B 4th Ave, Taguig, Metro Manila",
+          "destination":{
+            "location":{
+              "latLng":{
+                "latitude": destination.latitude,
+                "longitude": destination.longitude
+              }
+            }
           },
           "intermediates": [
             waypoints
           ],
           "travelMode": "DRIVE",
-          "extraComputations": ["TRAFFIC_ON_POLYLINE"],
-          "routingPreference": "TRAFFIC_AWARE_OPTIMAL",
           "polylineQuality": "HIGH_QUALITY",
           "routeModifiers": {
             "avoidTolls": true,
           },
           "computeAlternativeRoutes": false,
-          "languageCode": "en-US",
-          "units": "IMPERIAL"
+          "languageCode": "en-PH",
+          "units": "METRIC"
         }),
         headers: <String, String>{
           'Content-Type': 'application/json',
@@ -129,15 +135,18 @@ class CommonMethods
   static Future<DirectionDetails?> postData(LatLng source,LatLng destination, waypoints) async {
     String apiUrl = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
-    var responseData = await sendRequestToRoutesAPI(source,destination, waypoints,apiUrl);
+    var responseData = await sendRequestToRoutesAPI(source,destination,waypoints, apiUrl);
 
+    log("response from API : $responseData");
     if (responseData == "error") {
       return null;
     }
 
+
+
     DirectionDetails detailsModel = DirectionDetails();
-    detailsModel.distanceValueDigits = responseData["routes"][0]["distance"];
-    detailsModel.durationValueDigits = responseData["routes"][0]["duration"];
+    detailsModel.distanceValueDigits = responseData["routes"][0]["distanceMeters"];
+    detailsModel.durationTextString = responseData["routes"][0]["duration"];
     detailsModel.encodedPoints = responseData["routes"][0]["polyline"]["encodedPolyline"];
 
 

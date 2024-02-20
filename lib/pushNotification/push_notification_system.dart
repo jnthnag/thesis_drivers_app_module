@@ -21,7 +21,7 @@ class PushNotificationSystem
   StreamSubscription<DatabaseEvent>? DispatchStreamSubscription;
   List<String> tripIDs = [];
   List<LatLng> pickUpLatLangs = [];
-  List<String> pickUpAddresses = [];
+  List pickUpAddresses = [];
 
   // generate unique FCM token for each driver
   Future<String?> generateDeviceRegistrationToken() async
@@ -111,7 +111,7 @@ class PushNotificationSystem
             log("pickUpLatLangs: $pickUpLatLangs");
 
             tripDetailsInfo.pickUpAddress = (dataSnapshot.snapshot.value! as Map)["pickUpAddress"];
-            pickUpAddresses.add((dataSnapshot.snapshot.value! as Map)["pickUpAddress"]);
+            pickUpAddresses.add({"address": tripDetailsInfo.pickUpAddress});
             log("pickUpAddresses : $pickUpAddresses");
 
             double dropOffLat = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["latitude"]);
@@ -135,6 +135,25 @@ class PushNotificationSystem
               builder: (BuildContext context) =>
                   NotificationDialog(tripDetailsInfo: tripDetailsInfo,),
             );
+
+
+
+            Map <String, dynamic> tripIDDetails = {
+              "pickUpAddress" : tripDetailsInfo.pickUpAddress,
+              "latitude" : pickUpLat,
+              "longitude" : pickUpLng
+            };
+            
+            DatabaseReference driverTripIDs = FirebaseDatabase.instance.ref().child("drivers")
+                .child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+            DatabaseReference driverTripIDDetails = FirebaseDatabase.instance.ref().child("drivers")
+                .child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails").child(tripID);
+
+            driverTripIDDetails.update(tripIDDetails);
+
+
+
           });
         }
     });

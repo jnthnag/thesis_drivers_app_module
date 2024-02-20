@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:thesis_drivers_app_module/pages/home_page.dart';
+import 'package:thesis_drivers_app_module/pages/home_page_final.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
 import '../models/trip_details.dart';
@@ -99,10 +101,10 @@ class _NotificationDialogState extends State<NotificationDialog>
         if(newTripStatusValue == widget.tripDetailsInfo!.tripID)
         {
           driverTripStatusRef.set("accepted");
-
+          saveDriverDataToTripInfoAcceptMore();
           //disable homepage location updates
-          common.turnOffLocationUpdatesForHomePage();
-          Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo)));
+          //common.turnOffLocationUpdatesForHomePage();
+          Navigator.push(context, MaterialPageRoute(builder: (c)=> HomePageFinal(tripDetailsInfo: widget.tripDetailsInfo)));
         }
         else if(newTripStatusValue == "cancelled")
         {
@@ -162,9 +164,6 @@ class _NotificationDialogState extends State<NotificationDialog>
         .child("drivers")
         .child(FirebaseAuth.instance.currentUser!.uid)
         .child("newTripStatus");
-
-    //DatabaseReference dispatchStatusRef = FirebaseDatabase.instance.ref().child("tripRequests").child("dispatchStatus");
-
 
     driverTripStatusRef.once().then((dataSnapshot) async {
       Navigator.pop(context);
@@ -358,7 +357,7 @@ class _NotificationDialogState extends State<NotificationDialog>
 
                   const SizedBox(width: 10,),
 
-                  Expanded(
+                  /*Expanded(
                     child: ElevatedButton(
                       onPressed: ()
                       {
@@ -381,7 +380,7 @@ class _NotificationDialogState extends State<NotificationDialog>
                         ),
                       ),
                     ),
-                  ),
+                  ),*/
 
                   const SizedBox(width: 10,),
 
