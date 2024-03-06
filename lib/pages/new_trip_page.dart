@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -6,10 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:sendgrid_mailer/sendgrid_mailer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
 import '../methods/map_theme_methods.dart';
+import '../models/direction_details.dart';
 import '../models/trip_details.dart';
 import '../widgets/loading_dialog.dart';
 import '../widgets/payment_dialog.dart';
@@ -19,8 +22,11 @@ import 'dart:developer';
 class NewTripPage extends StatefulWidget
 {
   TripDetails? newTripDetailsInfo;
+  List? tripIds;
+  List? pickUpLatLng;
+  List? finalWaypoints;
 
-  NewTripPage({super.key, this.newTripDetailsInfo,});
+  NewTripPage({super.key, this.newTripDetailsInfo, this.finalWaypoints, this.pickUpLatLng, this.tripIds});
 
   @override
   State<NewTripPage> createState() => _NewTripPageState();
@@ -44,18 +50,23 @@ class _NewTripPageState extends State<NewTripPage>
   String buttonTitleText = "ARRIVED";
   Color buttonColor = Colors.indigoAccent;
   CommonMethods common = CommonMethods();
-  List<Map<String, dynamic>> waypoints = [];
+  /*List<Map<String, dynamic>> waypoints = [];
+  List<String> waypointsTest = [];
   List<String> tripIDs = [];
-  List<LatLng> pickUpLatLng = [];
+  List<LatLng> pickUpLatLng = [];*/
   LatLng dropOffLatLng = const LatLng(14.481952540896081,121.05271356403014);
   String dropOffAddress = "Mega Pacific Freight Logistics, Inc.";
+  DirectionDetails? distanceDetails;
+  var finalWaypoints;
+  var finalWaypointsTest;
+
 
 
   makeMarker()
   {
     if(carMarkerIcon == null)
     {
-      ImageConfiguration configuration = createLocalImageConfiguration(context, size: Size(2, 2));
+      ImageConfiguration configuration = createLocalImageConfiguration(context, size: const Size(2, 2));
 
       BitmapDescriptor.fromAssetImage(configuration, "assets/images/tracking.png")
           .then((valueIcon)
@@ -65,8 +76,25 @@ class _NewTripPageState extends State<NewTripPage>
     }
   }
 
-  obtainDirectionAndDrawRoute(LatLng sourceLocationLatLng, LatLng destinationLocationLatLng) async
+  obtainDirectionAndDrawRoute(LatLng sourceLocationLatLng, LatLng destinationLocationLatLng, waypoints) async
   {
+
+
+    var finalWaypoints = widget.finalWaypoints!;
+    List finalPickUpLatLng = widget.pickUpLatLng!.expand((e) => e).toList();
+    //var finalWaypoints = ["SM City Bicutan - Basement Parking| SM Mall of Asia Pacific Dr| Vista GL Taft by Vista Residences | Adamson University Main Building |  Robinsons Place Manila| University Pad Residences Taft "];
+    //var finalPickUpLatLng = widget.pickUpLatLng!;
+
+    /*var finalPickUpLatLng = const [LatLng(14.563171438249386, 120.99660754139758),
+    LatLng(14.575806318146906, 120.98390566355988),
+    LatLng(14.585982799465254, 120.98539863895142),
+    LatLng(14.579556636257582, 120.98681978313202),
+    LatLng(14.535383780337185, 120.98310343990391),
+    LatLng(14.486641629869697, 121.04244539389111)];*/
+
+    //log("finalPickUpLatLng : $finalPickUpLatLng");
+
+
     //common.turnOffLocationUpdatesForHomePage();
     showDialog(
         barrierDismissible: false,
@@ -74,29 +102,12 @@ class _NewTripPageState extends State<NewTripPage>
         builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',)
     );
 
-    DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
 
-     tripDetailsRef.onValue.listen((snap) {
-      Map tripDetailsMap = snap.snapshot.value as Map;
-      List tripDetailsList = [];
-      tripDetailsMap.forEach((key, value) {
-        tripDetailsList.add({"key": key, ...value});
-      });
-      for(var tripDetails in tripDetailsList)
-        {
-          tripIDs.add(tripDetails["key"]);
-          waypoints.add({"vehicleStopover" : true, "address":tripDetails["pickUpAddress"]});
-          pickUpLatLng.add(LatLng(tripDetails["latitude"], tripDetails["longitude"]));
-        }
-      log("tripIDs : $tripIDs");
-      log("waypoints : $waypoints");
-      log("pickUpLatLng : $pickUpLatLng");
-     });
-     
-    var tripDetailsInfo = await CommonMethods.postData(
+
+    var tripDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(
         sourceLocationLatLng,
         destinationLocationLatLng,
-      waypoints
+        finalWaypoints
     );
 
     Navigator.pop(context);
@@ -174,8 +185,8 @@ class _NewTripPageState extends State<NewTripPage>
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
-    for(int i = 0; i < pickUpLatLng.length; i++){
-      LatLng currentCoordinate = pickUpLatLng[i];
+    for(int i = 0; i < finalPickUpLatLng.length; i++){
+      LatLng currentCoordinate = finalPickUpLatLng[i];
       Marker marker = Marker(
         markerId: MarkerId('waypoint_$i'),
         position: currentCoordinate,
@@ -222,8 +233,6 @@ class _NewTripPageState extends State<NewTripPage>
 
   getLiveLocationUpdatesOfDriver()
   {
-
-
     positionStreamNewTripPage = Geolocator.getPositionStream().listen((Position positionDriver)
     {
       driverCurrentPosition = positionDriver;
@@ -283,22 +292,20 @@ class _NewTripPageState extends State<NewTripPage>
       }
       else // scenario 2: after order pickup: driver drop off = USER drop off location
       {
-        dropOffDestinationLocationLatLng = widget.newTripDetailsInfo!.dropOffLatLng!;
+        dropOffDestinationLocationLatLng = dropOffLatLng;
       }
 
-      var directionDetailsInfo = await CommonMethods.postData(driverLocationLatLng, dropOffDestinationLocationLatLng, waypoints);
+      var directionDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(driverLocationLatLng, dropOffLatLng, widget.finalWaypoints
+      );
 
       if(directionDetailsInfo != null)
       {
         directionRequested = false;
 
         setState(() {
-          var duration = double.parse(directionDetailsInfo.durationTextString!);
-          var hours = duration / 60;
-          var minutes = duration % 60;
-          durationText = "$hours hr $minutes min";
-           var distance = directionDetailsInfo.distanceValueDigits! / 1000 ;
-           distanceText = "$distance km";
+          distanceText = directionDetailsInfo.distanceTextString!;
+          durationText = directionDetailsInfo.durationTextString!;
+
         });
       }
     }
@@ -316,7 +323,9 @@ class _NewTripPageState extends State<NewTripPage>
 
     var directionDetailsEndTripInfo = await CommonMethods.getDirectionDetailsFromAPI(
       widget.newTripDetailsInfo!.pickUpLatLng!, //pickup
-      driverCurrentLocationLatLng //destination
+      driverCurrentLocationLatLng,
+        widget.finalWaypoints
+//destination
     );
 
     Navigator.pop(context);
@@ -406,6 +415,22 @@ class _NewTripPageState extends State<NewTripPage>
         .child("driverLocation").update(driverCurrentLocation);
   }
 
+  void sendmail(){
+    final mailer = Mailer('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');
+    final toAddress = Address('paulrivera018@gmail.com');
+    final fromAddress = Address('3pldispatchmanagementsystem@gmail.com');
+    final content = Content('text/plain', 'Your E-receipt is here please view it. ');
+    final subject = 'Your E-Receipt is Here';
+    //final template_id = "d-b85aedb06e864b3bb1fb7934427875f7";
+    final personalization = Personalization([toAddress]);
+
+    final email =
+    Email([personalization], fromAddress, subject, content: [content]);
+    mailer.send(email).then((result) {
+      print(result.isValue);
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -418,6 +443,8 @@ class _NewTripPageState extends State<NewTripPage>
   @override
   Widget build(BuildContext context)
   {
+
+
     makeMarker();
 
     return Scaffold(
@@ -448,8 +475,8 @@ class _NewTripPageState extends State<NewTripPage>
                   driverCurrentPosition!.longitude
               );
 
-
-              await obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, dropOffLatLng);
+              await obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, dropOffLatLng, widget.finalWaypoints
+              );
 
               getLiveLocationUpdatesOfDriver();
             },
@@ -589,6 +616,8 @@ class _NewTripPageState extends State<NewTripPage>
                       child: ElevatedButton(
                         onPressed: () async
                         {
+                          var finalTripIDs = widget.tripIds!.expand((e) => e).toList();
+                          log("finalTripIDs : $finalTripIDs");
                           // execute statement when clicking ARRIVED BUTTON
                           if(statusOfTrip == "accepted")
                           {
@@ -599,18 +628,13 @@ class _NewTripPageState extends State<NewTripPage>
 
                             statusOfTrip = "arrived";
 
-                            for(int j = 0; j < tripIDs.length; j++){
-                              var tripID = tripIDs[j];
+                            for(int j = 0; j < finalTripIDs.length; j++){
+                              var tripID = finalTripIDs[j];
                               FirebaseDatabase.instance.ref()
                                   .child("tripRequests")
                                   .child(tripID)
                                   .child("status").set("arrived");
                             }
-
-                            /*FirebaseDatabase.instance.ref()
-                                .child("tripRequests")
-                                .child(widget.newTripDetailsInfo!.tripID!)
-                                .child("status").set("arrived");*/
 
                             showDialog(
                                 barrierDismissible: false,
@@ -622,7 +646,8 @@ class _NewTripPageState extends State<NewTripPage>
 
                             await obtainDirectionAndDrawRoute(
                                 driverCurrentLatLng,
-                              dropOffLatLng
+                              dropOffLatLng,
+                                widget.finalWaypoints
                             );
 
                             Navigator.pop(context);
@@ -636,8 +661,8 @@ class _NewTripPageState extends State<NewTripPage>
                             });
 
                             statusOfTrip = "ontrip";
-                          for(int j = 0; j < tripIDs.length; j++) {
-                            var tripID = tripIDs[j];
+                          for(int j = 0; j < finalTripIDs.length; j++) {
+                            var tripID = finalTripIDs[j];
 
                             FirebaseDatabase.instance.ref()
                                 .child("tripRequests")
@@ -649,17 +674,18 @@ class _NewTripPageState extends State<NewTripPage>
                           else if(statusOfTrip == "ontrip")
                           {
                             //end the trip
-                            for(int j = 0; j < tripIDs.length; j++) {
-                          var tripID = tripIDs[j];
+                            for(int j = 0; j < finalTripIDs.length; j++) {
+                          var tripID = finalTripIDs[j];
 
                           FirebaseDatabase.instance.ref()
                               .child("tripRequests")
                               .child(tripID)
                               .child("status").set("ended");
                           }
+                            var email = ["paulrivera018@gmail.com", "3pldispatchmanagementsystem@gmail.com"];
 
+                            sendmail();
                             endTripNow();
-
                           }
                         },
                         style: ElevatedButton.styleFrom(

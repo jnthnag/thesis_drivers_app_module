@@ -107,6 +107,7 @@ class CommonMethods
           ],
           "travelMode": "DRIVE",
           "polylineQuality": "HIGH_QUALITY",
+          "routingPreference":"TRAFFIC_AWARE_OPTIMAL",
           "routeModifiers": {
             "avoidTolls": true,
           },
@@ -131,6 +132,35 @@ class CommonMethods
     }
   }
 
+
+  static Future<DirectionDetails?> getDirectionDetailsFromAPI(LatLng source,LatLng destination, waypoints) async {
+    String urlDirectionAPI = "https://maps.googleapis.com/maps/api/directions/json?&departure_time=now&destination=${destination.latitude},${destination.longitude}&origin=${source.latitude},${source.longitude}&mode=driving&waypoints=optimize:true|$waypoints&avoid=tolls&key=$googleMapKey";
+    var responseFromDirectionAPI = await sendRequestToAPI(urlDirectionAPI);
+
+    if (responseFromDirectionAPI == "error") {
+      return null;
+    }
+
+    print(responseFromDirectionAPI);
+
+    DirectionDetails detailsModel = DirectionDetails();
+    detailsModel.distanceTextString =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["distance"]["text"];
+    detailsModel.distanceValueDigits =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["distance"]["value"];
+
+    detailsModel.durationTextString =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["duration"]["text"];
+    detailsModel.durationValueDigits =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["duration"]["value"];
+
+    detailsModel.encodedPoints =
+    responseFromDirectionAPI["routes"][0]["overview_polyline"]["points"];
+
+
+    return detailsModel;
+  }
+
   ///routes API
   static Future<DirectionDetails?> postData(LatLng source,LatLng destination, waypoints) async {
     String apiUrl = "https://routes.googleapis.com/directions/v2:computeRoutes";
@@ -153,12 +183,14 @@ class CommonMethods
     return detailsModel;
   }
 
-  ///Directions API
-  static Future<DirectionDetails?> getDirectionDetailsFromAPI(LatLng source, LatLng destination) async
+  /*///Directions API
+  static Future<DirectionDetails?> getDirectionDetailsFromAPI(LatLng source, LatLng destination, waypoints) async
   {
-    String urlDirectionsAPI = "https://maps.googleapis.com/maps/api/directions/json?destination=${destination.latitude},${destination.longitude}&origin=${source.latitude},${source.longitude}&mode=driving&key=$googleMapKey";
+    String urlDirectionsAPI = "https://maps.googleapis.com/maps/api/directions/json?destination=${destination.latitude},${destination.longitude}&origin=${source.latitude},${source.longitude}&mode=driving&waypoints=TriNoma&avoid=tolls&key=$googleMapKey";
 
     var responseFromDirectionsAPI = await sendRequestToAPI(urlDirectionsAPI);
+
+    log("responseFromDirectionsAPI : $responseFromDirectionsAPI");
 
     if(responseFromDirectionsAPI == "error")
     {
@@ -176,7 +208,7 @@ class CommonMethods
     detailsModel.encodedPoints = responseFromDirectionsAPI["routes"][0]["overview_polyline"]["points"];
 
     return detailsModel;
-  }
+  }*/
 
 
 

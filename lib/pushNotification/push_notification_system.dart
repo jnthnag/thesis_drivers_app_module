@@ -42,7 +42,6 @@ class PushNotificationSystem
 
   // listening for new notifications (covers 3 scenarios)
   startListeningForNewNotification(BuildContext context){
-    String dispatchApprove = '';
     // 1. App is terminated (app completely closed)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? messageRemote)
     {
@@ -57,6 +56,7 @@ class PushNotificationSystem
     // 2. Foreground (app is open)
     FirebaseMessaging.onMessage.listen((RemoteMessage? messageRemote)
     {
+
       if(messageRemote != null)
       {
         String tripID =  messageRemote.data["tripID"];
@@ -84,7 +84,6 @@ class PushNotificationSystem
      await dispatchStatus.once().then((snap) {
          if((snap.snapshot.value as Map)["dispatchStatus"] == "accept" ){
            tripIDs.add(tripID);
-           log("tripIDs: $tripIDs");
            showDialog(
              context: context,
              barrierDismissible: false,
@@ -134,16 +133,11 @@ class PushNotificationSystem
                   NotificationDialog(tripDetailsInfo: tripDetailsInfo,),
             );
 
-
-
             Map <String, dynamic> tripIDDetails = {
               "pickUpAddress" : tripDetailsInfo.pickUpAddress,
               "latitude" : pickUpLat,
               "longitude" : pickUpLng
             };
-
-            DatabaseReference driverTripIDs = FirebaseDatabase.instance.ref().child("drivers")
-                .child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
 
             DatabaseReference driverTripIDDetails = FirebaseDatabase.instance.ref().child("drivers")
                 .child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails").child(tripID);

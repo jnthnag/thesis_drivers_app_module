@@ -331,7 +331,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          Positioned(
+         /* Positioned(
               left: 0,
               right: 0,
               bottom: -80,
@@ -358,7 +358,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    /*ElevatedButton(onPressed: (){
+                    *//*ElevatedButton(onPressed: (){
 
                     },
                       style: ElevatedButton.styleFrom(
@@ -372,7 +372,7 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.white,
                         size: 25,
                       ),
-                    ),*/
+                    ),*//*
 
                     ElevatedButton(onPressed: (){
 
@@ -392,7 +392,7 @@ class _HomePageState extends State<HomePage> {
 
                   ],
                 ),
-              )),
+              )),*/
 
           Container(
             height: 135,

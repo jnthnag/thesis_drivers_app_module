@@ -52,6 +52,7 @@ dependencies:
   flutter_polyline_points:
   url_launcher:
   restart_app:
+  sendgrid_mailer: ^0.1.3
 
   # google APIs
   geolocator:

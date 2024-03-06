@@ -41,6 +41,11 @@ class _HomePageState extends State<HomePageFinal> {
   double searchHeightContainer = 276;
   GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
   MapThemeMethods themeMethods = MapThemeMethods();
+  List<String> waypointsTest = [];
+  List<String> tripIDs = [];
+  List<LatLng> pickUpLatLng = [];
+  var finalWaypointsTest;
+  var finalWaypoints;
 
 
   getCurrentLiveLocationOfDriver()async
@@ -133,6 +138,64 @@ class _HomePageState extends State<HomePageFinal> {
     });
 
     initializePushNotificationSystem();
+  }
+
+  obtainWaypoints()  {
+    DatabaseReference tripDetailsRef =  FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+      {
+        waypointsTest.add(tripDetails["pickUpAddress"]);
+      }
+      if(waypointsTest.length > 1){
+        finalWaypoints = jsonEncode(finalWaypointsTest = waypointsTest.join("|"));
+      }else{
+        finalWaypoints = jsonEncode(waypointsTest);
+      }
+    });
+    return finalWaypoints;
+  }
+
+  obtainTripIDs() {
+    DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+      {
+        tripIDs.add(tripDetails["key"]);
+
+      }
+    });
+    return tripIDs;
+  }
+
+  obtainPickUpLatLng(){
+    DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+      {
+
+        pickUpLatLng.add(LatLng(tripDetails["latitude"], tripDetails["longitude"]));
+      }
+    });
+    return pickUpLatLng;
   }
 
   @override
@@ -268,6 +331,9 @@ class _HomePageState extends State<HomePageFinal> {
               googleMapCompleterController.complete(controllerGoogleMap);
 
               getCurrentLiveLocationOfDriver();
+              obtainWaypoints();
+              obtainPickUpLatLng();
+              obtainTripIDs();
             },
           ),
 
@@ -322,13 +388,12 @@ class _HomePageState extends State<HomePageFinal> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ElevatedButton(onPressed: () async {
-                      Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo)));
+                      Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo, finalWaypoints: [finalWaypoints], tripIds: [tripIDs], pickUpLatLng: [pickUpLatLng],)));
                     },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         shape: const CircleBorder(),
                         padding: const EdgeInsets.all(24),
-
                       ),
                       child: const Icon(
                         Icons.route,
