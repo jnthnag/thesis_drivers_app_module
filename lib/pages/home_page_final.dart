@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -44,6 +45,12 @@ class _HomePageState extends State<HomePageFinal> {
   List<String> waypointsTest = [];
   List<String> tripIDs = [];
   List<LatLng> pickUpLatLng = [];
+  List<String> email = [];
+  List<String> username = [];
+  List<String> userphone = [];
+  List<String> pickUpAddress = [];
+
+
   var finalWaypointsTest;
   var finalWaypoints;
 
@@ -162,6 +169,23 @@ class _HomePageState extends State<HomePageFinal> {
     return finalWaypoints;
   }
 
+  obtainPickUpAddress(){
+    DatabaseReference tripDetailsRef =  FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+      {
+        pickUpAddress.add(tripDetails["pickUpAddress"]);
+      }
+    });
+    return pickUpAddress;
+  }
+
   obtainTripIDs() {
     DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
 
@@ -174,7 +198,6 @@ class _HomePageState extends State<HomePageFinal> {
       for(var tripDetails in tripDetailsList)
       {
         tripIDs.add(tripDetails["key"]);
-
       }
     });
     return tripIDs;
@@ -191,12 +214,66 @@ class _HomePageState extends State<HomePageFinal> {
       });
       for(var tripDetails in tripDetailsList)
       {
-
         pickUpLatLng.add(LatLng(tripDetails["latitude"], tripDetails["longitude"]));
       }
     });
     return pickUpLatLng;
   }
+
+  obtainEmail(){
+    DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+      {
+        email.add(tripDetails["email"]);
+      }
+    });
+    return email;
+  }
+
+  obtainUsername(){
+    DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+        {
+          username.add(tripDetails["username"]);
+      }
+    });
+    return username;
+  }
+
+  obtainUserphone(){
+    DatabaseReference tripDetailsRef = FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails");
+
+    tripDetailsRef.onValue.listen((snap) {
+      Map tripDetailsMap = snap.snapshot.value as Map;
+      List tripDetailsList = [];
+      tripDetailsMap.forEach((key, value) {
+        tripDetailsList.add({"key": key, ...value});
+      });
+      for(var tripDetails in tripDetailsList)
+      {
+        userphone.add(tripDetails["userphone"]);
+        log("userphone : $userphone");
+      }
+    });
+    return userphone;
+  }
+
+
+
 
   @override
   void initState() {
@@ -334,6 +411,10 @@ class _HomePageState extends State<HomePageFinal> {
               obtainWaypoints();
               obtainPickUpLatLng();
               obtainTripIDs();
+              obtainEmail();
+              obtainUsername();
+              obtainUserphone();
+              obtainPickUpAddress();
             },
           ),
 
@@ -388,7 +469,7 @@ class _HomePageState extends State<HomePageFinal> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ElevatedButton(onPressed: () async {
-                      Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo, finalWaypoints: [finalWaypoints], tripIds: [tripIDs], pickUpLatLng: [pickUpLatLng],)));
+                      Navigator.push(context, MaterialPageRoute(builder: (c)=> NewTripPage(newTripDetailsInfo: widget.tripDetailsInfo, finalWaypoints: [finalWaypoints], tripIds: [tripIDs], pickUpLatLng: [pickUpLatLng], emailAddress: [email], userName: [username], userPhone: [userphone], pickUpAddress: [pickUpAddress],)));
                     },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,

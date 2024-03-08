@@ -117,13 +117,11 @@ class PushNotificationSystem
             double dropOffLng = double.parse((dataSnapshot.snapshot.value! as Map)["dropOffLatLng"]["longitude"]);
             tripDetailsInfo.dropOffLatLng = LatLng(dropOffLat, dropOffLng);
 
-            tripDetailsInfo.dropOffAddress =
-            (dataSnapshot.snapshot.value! as Map)["dropOffAddress"];
+            tripDetailsInfo.dropOffAddress = (dataSnapshot.snapshot.value! as Map)["dropOffAddress"];
 
-            tripDetailsInfo.userName =
-            (dataSnapshot.snapshot.value! as Map)["userName"];
-            tripDetailsInfo.userPhone =
-            (dataSnapshot.snapshot.value! as Map)["userPhone"];
+            tripDetailsInfo.userName = (dataSnapshot.snapshot.value! as Map)["userName"];
+            tripDetailsInfo.userPhone = (dataSnapshot.snapshot.value! as Map)["userPhone"];
+            tripDetailsInfo.userEmail = (dataSnapshot.snapshot.value! as Map)["userEmail"];
 
             tripDetailsInfo.tripID = tripID;
 
@@ -136,7 +134,10 @@ class PushNotificationSystem
             Map <String, dynamic> tripIDDetails = {
               "pickUpAddress" : tripDetailsInfo.pickUpAddress,
               "latitude" : pickUpLat,
-              "longitude" : pickUpLng
+              "longitude" : pickUpLng,
+              "email" : tripDetailsInfo.userEmail,
+              "username" : tripDetailsInfo.userName,
+              "userphone" :tripDetailsInfo.userPhone
             };
 
             DatabaseReference driverTripIDDetails = FirebaseDatabase.instance.ref().child("drivers")

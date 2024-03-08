@@ -161,6 +161,32 @@ class CommonMethods
     return detailsModel;
   }
 
+  static Future<DirectionDetails?> getDirectionDetailsFromAPIDurationDistance(LatLng source,LatLng destination) async {
+    String urlDirectionAPI = "https://maps.googleapis.com/maps/api/directions/json?&departure_time=now&destination=${destination.latitude},${destination.longitude}&origin=${source.latitude},${source.longitude}&mode=driving&avoid=tolls&key=$googleMapKey";
+    var responseFromDirectionAPI = await sendRequestToAPI(urlDirectionAPI);
+
+    if (responseFromDirectionAPI == "error") {
+      return null;
+    }
+
+    DirectionDetails detailsModel = DirectionDetails();
+    detailsModel.distanceTextString =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["distance"]["text"];
+    detailsModel.distanceValueDigits =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["distance"]["value"];
+
+    detailsModel.durationTextString =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["duration"]["text"];
+    detailsModel.durationValueDigits =
+    responseFromDirectionAPI["routes"][0]["legs"][0]["duration"]["value"];
+
+    detailsModel.encodedPoints =
+    responseFromDirectionAPI["routes"][0]["overview_polyline"]["points"];
+
+
+    return detailsModel;
+  }
+
   ///routes API
   static Future<DirectionDetails?> postData(LatLng source,LatLng destination, waypoints) async {
     String apiUrl = "https://routes.googleapis.com/directions/v2:computeRoutes";

@@ -9,6 +9,7 @@ class TripDetails
   String? dropOffAddress; //stay as is
   String? userName; //convert to list
   String? userPhone; // convert to list
+  String? userEmail;
 
 
   TripDetails(

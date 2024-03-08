@@ -24,9 +24,13 @@ class NewTripPage extends StatefulWidget
   TripDetails? newTripDetailsInfo;
   List? tripIds;
   List? pickUpLatLng;
+  List? pickUpAddress;
   List? finalWaypoints;
+  List? emailAddress;
+  List? userName;
+  List? userPhone;
 
-  NewTripPage({super.key, this.newTripDetailsInfo, this.finalWaypoints, this.pickUpLatLng, this.tripIds});
+  NewTripPage({super.key, this.newTripDetailsInfo, this.finalWaypoints, this.pickUpLatLng, this.tripIds, this.emailAddress, this.userName, this.userPhone, this.pickUpAddress});
 
   @override
   State<NewTripPage> createState() => _NewTripPageState();
@@ -45,20 +49,17 @@ class _NewTripPageState extends State<NewTripPage>
   Set<Polyline> polyLinesSet = Set<Polyline>();
   BitmapDescriptor? carMarkerIcon;
   bool directionRequested = false;
-  String statusOfTrip = "accepted";
+  /*String statusOfTrip = "accepted";
   String durationText = "", distanceText = "";
   String buttonTitleText = "ARRIVED";
-  Color buttonColor = Colors.indigoAccent;
+  Color buttonColor = Colors.indigoAccent;*/
   CommonMethods common = CommonMethods();
-  /*List<Map<String, dynamic>> waypoints = [];
-  List<String> waypointsTest = [];
-  List<String> tripIDs = [];
-  List<LatLng> pickUpLatLng = [];*/
   LatLng dropOffLatLng = const LatLng(14.481952540896081,121.05271356403014);
   String dropOffAddress = "Mega Pacific Freight Logistics, Inc.";
   DirectionDetails? distanceDetails;
   var finalWaypoints;
   var finalWaypointsTest;
+
 
 
 
@@ -78,8 +79,6 @@ class _NewTripPageState extends State<NewTripPage>
 
   obtainDirectionAndDrawRoute(LatLng sourceLocationLatLng, LatLng destinationLocationLatLng, waypoints) async
   {
-
-
     var finalWaypoints = widget.finalWaypoints!;
     List finalPickUpLatLng = widget.pickUpLatLng!.expand((e) => e).toList();
     //var finalWaypoints = ["SM City Bicutan - Basement Parking| SM Mall of Asia Pacific Dr| Vista GL Taft by Vista Residences | Adamson University Main Building |  Robinsons Place Manila| University Pad Residences Taft "];
@@ -255,7 +254,7 @@ class _NewTripPageState extends State<NewTripPage>
       });
 
       //update Trip Details Information
-      updateTripDetailsInformation();
+      /*updateTripDetailsInformation();*/
 
       //update driver location to tripRequest
       Map updatedLocationOfDriver =
@@ -270,7 +269,7 @@ class _NewTripPageState extends State<NewTripPage>
     });
   }
 
-  updateTripDetailsInformation() async
+  /*updateTripDetailsInformation() async
   {
     if(!directionRequested)
     {
@@ -309,7 +308,7 @@ class _NewTripPageState extends State<NewTripPage>
         });
       }
     }
-  }
+  }*/
 
   endTripNow() async
   {
@@ -415,9 +414,9 @@ class _NewTripPageState extends State<NewTripPage>
         .child("driverLocation").update(driverCurrentLocation);
   }
 
-  void sendmail(){
+  void sendmail(emailAddress){
     final mailer = Mailer('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');
-    final toAddress = Address('paulrivera018@gmail.com');
+    final toAddress = Address(emailAddress);
     final fromAddress = Address('3pldispatchmanagementsystem@gmail.com');
     final content = Content('text/plain', 'Your E-receipt is here please view it. ');
     final subject = 'Your E-Receipt is Here';
@@ -439,14 +438,26 @@ class _NewTripPageState extends State<NewTripPage>
     saveDriverDataToTripInfo();
   }
 
+/*  @override
+  void dispose() {
+    // Cancel the stream subscription when the widget is disposed
+    positionStreamNewTripPage?.cancel();
+    super.dispose();
+  }*/
+
   /// START OF WIDGET BUILD
   @override
   Widget build(BuildContext context)
   {
+    var finalTripIDs = widget.tripIds!.expand((e) => e).toList();
+    var finalEmail = widget.emailAddress!.expand((e) => e).toList();
+    var userPhone = widget.userPhone!.expand((e) => e).toList();
+    var userName = widget.userName!.expand((e) => e).toList();
+    var finalPickUpLatLng = widget.pickUpLatLng!.expand((e) => e).toList();
+    var finalPickUpAddress = widget.pickUpAddress!.expand((e) => e).toList();
 
-
+    log("email : $finalEmail");
     makeMarker();
-
     return Scaffold(
       body: Stack(
         children: [
@@ -487,226 +498,354 @@ class _NewTripPageState extends State<NewTripPage>
             left: 0,
             right: 0,
             bottom: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.only(topRight: Radius.circular(17), topLeft: Radius.circular(17)),
-                boxShadow:
-                [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 17,
-                    spreadRadius: 0.5,
-                    offset: Offset(0.7, 0.7),
+            height: 300,
+              child: ListView.builder(
+                itemCount: finalTripIDs.length,
+                physics: BouncingScrollPhysics(),
+                itemBuilder: (context, index) {
+                  return tripDetails(
+                    key: Key("counter-$index"),
+                    userName: userName[index],
+                    pickUpAddress: finalPickUpAddress[index],
+                    pickUpLatLng: finalPickUpLatLng[index],
+                    email: finalEmail[index],
+                    dropOffAddress: dropOffAddress,
+                    userPhone: userPhone[index],
+                    tripID: finalTripIDs[index],);
+                  }
                   ),
-                ],
+          ),
+
+        ],
+      ),
+    );
+  }
+}
+
+class tripDetails extends StatefulWidget {
+
+  String? userName;
+  String? userPhone;
+  String? pickUpAddress;
+  String? dropOffAddress;
+  String? tripID;
+  String? email;
+  LatLng? pickUpLatLng;
+
+  tripDetails({super.key, required this.userName, required this.userPhone, required this.pickUpAddress, required this.dropOffAddress, required this.tripID, required this.pickUpLatLng, required this.email});
+
+  @override
+  State<tripDetails> createState() => _tripDetailsState();
+}
+
+class _tripDetailsState extends State<tripDetails> {
+
+  String statusOfTrip = "accepted";
+  String buttonTitleText = "ARRIVED";
+  Color buttonColor = Colors.indigoAccent;
+  bool directionRequested = false;
+  LatLng dropOffLatLng = const LatLng(14.481952540896081,121.05271356403014);
+  String durationText = "", distanceText = "";
+  CommonMethods common = CommonMethods();
+
+  void sendmail(emailAddress){
+    final mailer = Mailer('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');
+    final toAddress = Address(emailAddress);
+    final fromAddress = Address('3pldispatchmanagementsystem@gmail.com');
+    final content = Content('text/plain', 'Your E-receipt is here please view it. ');
+    final subject = 'Your E-Receipt is Here';
+    //final template_id = "d-b85aedb06e864b3bb1fb7934427875f7";
+    final personalization = Personalization([toAddress]);
+
+    final email =
+    Email([personalization], fromAddress, subject, content: [content]);
+    mailer.send(email).then((result) {
+      print(result.isValue);
+    });
+  }
+
+  getLocationOfDriver(){
+    positionStreamNewTripPage = Geolocator.getPositionStream().listen((Position positionDriver){
+      driverCurrentPosition = positionDriver;
+
+      updateTripDetailsInformation();
+    });
+  }
+
+  updateTripDetailsInformation() async
+  {
+    if(!directionRequested)
+    {
+      directionRequested = true;
+
+      if(driverCurrentPosition == null)
+      {
+        return;
+      }
+
+      var driverLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
+
+      LatLng dropOffDestinationLocationLatLng;
+
+
+      if(statusOfTrip == "accepted") // scenario 1: pick up order, driver drop off = USER pick up location
+          {
+        dropOffDestinationLocationLatLng = widget.pickUpLatLng!;
+      }
+      else // scenario 2: after order pickup: driver drop off = USER drop off location
+          {
+        dropOffDestinationLocationLatLng = dropOffLatLng;
+      }
+
+      var directionDetailsInfo = await CommonMethods.getDirectionDetailsFromAPIDurationDistance(driverLocationLatLng, dropOffDestinationLocationLatLng
+      );
+
+      if(directionDetailsInfo != null)
+      {
+        directionRequested = false;
+
+        setState(() {
+          distanceText = directionDetailsInfo.distanceTextString!;
+          durationText = directionDetailsInfo.durationTextString!;
+
+        });
+      }
+    }
+  }
+
+  endTripNow() async
+  {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',),
+    );
+
+    var driverCurrentLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
+
+    var directionDetailsEndTripInfo = await CommonMethods.getDirectionDetailsFromAPIDurationDistance(
+        widget.pickUpLatLng!, //pickup
+        driverCurrentLocationLatLng
+//destination
+    );
+
+    Navigator.pop(context);
+
+    String fareAmount = (common.calculateFareAmount(directionDetailsEndTripInfo!)).toString();
+
+    await FirebaseDatabase.instance.ref().child("tripRequests")
+        .child(widget.tripID!)
+        .child("fareAmount").set(fareAmount);
+
+    await FirebaseDatabase.instance.ref().child("tripRequests")
+        .child(widget.tripID!)
+        .child("status").set("ended");
+
+    await FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).
+    child("tripDetails").remove();
+
+    positionStreamNewTripPage!.cancel();
+
+    /* //dialog for collecting fare amount
+    displayPaymentDialog(fareAmount);
+
+    //save fare amount to driver total earnings
+    saveFareAmountToDriverTotalEarnings(fareAmount);*/
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return  Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.black87,
+            borderRadius: BorderRadius.only(topRight: Radius.circular(17), topLeft: Radius.circular(17)),
+            boxShadow:
+            [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 17,
+                spreadRadius: 0.5,
+                offset: Offset(0.7, 0.7),
               ),
-              height: 256,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          height: 256,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                //trip duration
+                Center(
+                  child: Text(
+                    durationText + " - " + distanceText,
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 5,),
+
+                //user name - call user icon btn
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
 
-                    //trip duration
-                    Center(
-                      child: Text(
-                        durationText + " - " + distanceText,
-                        style: const TextStyle(
-                          color: Colors.green,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                    //user name
+                    Text(
+                      widget.userName!,
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    //call user icon btn
+                    GestureDetector(
+                      onTap: ()
+                      {
+                        launchUrl(
+                          Uri.parse(
+                              "tel://${widget.userPhone!}"
+                          ),
+                        );
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Icon(
+                          Icons.phone_android_outlined,
+                          color: Colors.grey,
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 5,),
+                  ],
+                ),
 
-                    //user name - call user icon btn
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                const SizedBox(height: 15,),
 
-                        //user name
-                        Text(
-                          widget.newTripDetailsInfo!.userName!,
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                // pickup icon and location
+                Row(
+                  children: [
 
-                        //call user icon btn
-                        GestureDetector(
-                          onTap: ()
-                          {
-                            launchUrl(
-                              Uri.parse(
-                                  "tel://${widget.newTripDetailsInfo!.userPhone.toString()}"
-                              ),
-                            );
-                          },
-                          child: const Padding(
-                            padding: EdgeInsets.only(right: 10),
-                            child: Icon(
-                              Icons.phone_android_outlined,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-
-                      ],
+                    Image.asset(
+                      "assets/images/initial.png",
+                      height: 16,
+                      width: 16,
                     ),
 
-                    const SizedBox(height: 15,),
-
-                    // pickup icon and location
-                    Row(
-                      children: [
-
-                        Image.asset(
-                          "assets/images/initial.png",
-                          height: 16,
-                          width: 16,
+                    Expanded(
+                      child: Text(
+                        widget.pickUpAddress!,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
                         ),
-
-                        Expanded(
-                          child: Text(
-                            widget.newTripDetailsInfo!.pickUpAddress.toString(),
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-
-                      ],
+                      ),
                     ),
 
-                    const SizedBox(height: 15,),
+                  ],
+                ),
 
-                    // drop-off icon and location
-                    Row(
-                      children: [
+                const SizedBox(height: 15,),
 
-                        Image.asset(
-                          "assets/images/final.png",
-                          height: 16,
-                          width: 16,
-                        ),
+                // drop-off icon and location
+                Row(
+                  children: [
 
-                        Expanded(
-                          child: Text(
-                            dropOffAddress,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Image.asset(
+                      "assets/images/final.png",
+                      height: 16,
+                      width: 16,
                     ),
 
-                    const SizedBox(height: 25,),
-
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () async
-                        {
-                          var finalTripIDs = widget.tripIds!.expand((e) => e).toList();
-                          log("finalTripIDs : $finalTripIDs");
-                          // execute statement when clicking ARRIVED BUTTON
-                          if(statusOfTrip == "accepted")
-                          {
-                            setState(() {
-                              buttonTitleText = "START TRIP";
-                              buttonColor = Colors.green;
-                            });
-
-                            statusOfTrip = "arrived";
-
-                            for(int j = 0; j < finalTripIDs.length; j++){
-                              var tripID = finalTripIDs[j];
-                              FirebaseDatabase.instance.ref()
-                                  .child("tripRequests")
-                                  .child(tripID)
-                                  .child("status").set("arrived");
-                            }
-
-                            showDialog(
-                                barrierDismissible: false,
-                                context: context,
-                                builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',)
-                            );
-
-                           var driverCurrentLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
-
-                            await obtainDirectionAndDrawRoute(
-                                driverCurrentLatLng,
-                              dropOffLatLng,
-                                widget.finalWaypoints
-                            );
-
-                            Navigator.pop(context);
-                          }
-                          // execute statement when clicking START TRIP BUTTON
-                          else if(statusOfTrip == "arrived")
-                          {
-                            setState(() {
-                              buttonTitleText = "END TRIP";
-                              buttonColor = Colors.amber;
-                            });
-
-                            statusOfTrip = "ontrip";
-                          for(int j = 0; j < finalTripIDs.length; j++) {
-                            var tripID = finalTripIDs[j];
-
-                            FirebaseDatabase.instance.ref()
-                                .child("tripRequests")
-                                .child(tripID)
-                                .child("status").set("ontrip");
-                          }
-                          }
-                          // execute statement when clicking END TRIP BUTTON
-                          else if(statusOfTrip == "ontrip")
-                          {
-                            //end the trip
-                            for(int j = 0; j < finalTripIDs.length; j++) {
-                          var tripID = finalTripIDs[j];
-
-                          FirebaseDatabase.instance.ref()
-                              .child("tripRequests")
-                              .child(tripID)
-                              .child("status").set("ended");
-                          }
-                            var email = ["paulrivera018@gmail.com", "3pldispatchmanagementsystem@gmail.com"];
-
-                            sendmail();
-                            endTripNow();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                        ),
-                        child: Text(
-                          buttonTitleText,
-                          style: const TextStyle(
-                            color: Colors.white,
-                          ),
+                    Expanded(
+                      child: Text(
+                        widget.dropOffAddress!,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
+
+                const SizedBox(height: 25,),
+
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async
+                    {
+
+                      //handleButtonPress(statusOfTrip);
+                      // execute statement when clicking ARRIVED BUTTON
+                      if(statusOfTrip == "accepted")
+                      {
+                        if(mounted){
+                          setState(() {
+                            buttonTitleText = "START TRIP";
+                            buttonColor = Colors.green;
+                          });
+                        }
+                        statusOfTrip = "arrived";
+
+                        // Navigator.pop(context);
+                      }
+                      // execute statement when clicking START TRIP BUTTON
+                      else if(statusOfTrip == "arrived")
+                      {
+                        if(mounted){
+                          setState(() {
+                            buttonTitleText = "END TRIP";
+                            buttonColor = Colors.amber;
+                          });
+                        }
+                        statusOfTrip = "ontrip";
+
+                        FirebaseDatabase.instance.ref()
+                            .child("tripRequests")
+                            .child(widget.tripID!)
+                            .child("status").set("ontrip");
+                      }
+                      // execute statement when clicking END TRIP BUTTON
+                      else if(statusOfTrip == "ontrip")
+                      {
+                        //end the trip
+                        FirebaseDatabase.instance.ref()
+                            .child("tripRequests")
+                            .child(widget.tripID!)
+                            .child("status").set("ended");
+                        //send e-receipt to users
+                        sendmail(widget.email);
+                        endTripNow();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: buttonColor,
+                    ),
+                    child: Text(
+                      buttonTitleText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-
-        ],
-      ),
+        )
     );
   }
 }
