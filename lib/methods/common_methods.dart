@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -140,8 +139,6 @@ class CommonMethods
     if (responseFromDirectionAPI == "error") {
       return null;
     }
-
-    print(responseFromDirectionAPI);
 
     DirectionDetails detailsModel = DirectionDetails();
     detailsModel.distanceTextString =

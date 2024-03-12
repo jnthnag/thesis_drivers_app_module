@@ -2,21 +2,18 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:thesis_drivers_app_module/pages/home_page.dart';
 import 'package:thesis_drivers_app_module/pages/home_page_final.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
 import '../models/trip_details.dart';
-import '../pages/new_trip_page.dart';
 import 'loading_dialog.dart';
-import 'dart:developer';
 
 
 class NotificationDialog extends StatefulWidget
 {
-  TripDetails? tripDetailsInfo;
+  final TripDetails? tripDetailsInfo;
 
-  NotificationDialog({super.key, this.tripDetailsInfo,});
+  const NotificationDialog({super.key, this.tripDetailsInfo,});
 
   @override
   State<NotificationDialog> createState() => _NotificationDialogState();
@@ -73,7 +70,7 @@ class _NotificationDialogState extends State<NotificationDialog>
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => LoadingDialog(messageText: 'please wait...',),
+      builder: (BuildContext context) => const LoadingDialog(messageText: 'please wait...',),
     );
 
     DatabaseReference driverTripStatusRef = FirebaseDatabase.instance.ref()
@@ -132,7 +129,7 @@ class _NotificationDialogState extends State<NotificationDialog>
       "driverName": driverName,
       "driverPhone": driverPhone,
       "driverPhoto": driverPhoto,
-      "carDetails": carColor + " - " + carModel + " - " + carPlateNumber,
+      "carDetails": "$carColor - $carModel - $carPlateNumber",
     };
 
     
@@ -158,7 +155,7 @@ class _NotificationDialogState extends State<NotificationDialog>
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => LoadingDialog(messageText: 'please wait...',),
+      builder: (BuildContext context) => const LoadingDialog(messageText: 'please wait...',),
     );
 
     DatabaseReference driverTripStatusRef = FirebaseDatabase.instance.ref()

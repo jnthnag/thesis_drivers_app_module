@@ -3,7 +3,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:thesis_drivers_app_module/pages/dashboard.dart';import '../methods/common_methods.dart';
+import 'package:thesis_drivers_app_module/pages/dashboard.dart';
+import '../methods/common_methods.dart';
 import '../widgets/loading_dialog.dart';
 import 'login_screen.dart';
 import 'dart:io';
@@ -96,7 +97,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) =>
-            LoadingDialog(messageText: "Registering your account"));
+            const LoadingDialog(messageText: "Registering your account"));
     final User? userFirebase = (await FirebaseAuth.instance
         .createUserWithEmailAndPassword(
       email: common.emailTextEditingController.text.trim(),
@@ -155,7 +156,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(
                 height: 70,
               ),
-
               imageFile == null ?
               const CircleAvatar(
                 radius: 70,

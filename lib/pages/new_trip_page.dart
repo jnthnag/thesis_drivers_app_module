@@ -1,13 +1,16 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
-import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:sendgrid_mailer/sendgrid_mailer.dart';
+import 'package:thesis_drivers_app_module/pages/Camera.dart';
+import 'package:thesis_drivers_app_module/widgets/info_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
@@ -19,18 +22,19 @@ import '../widgets/payment_dialog.dart';
 import 'dart:developer';
 
 
+
 class NewTripPage extends StatefulWidget
 {
-  TripDetails? newTripDetailsInfo;
-  List? tripIds;
-  List? pickUpLatLng;
-  List? pickUpAddress;
-  List? finalWaypoints;
-  List? emailAddress;
-  List? userName;
-  List? userPhone;
+  final TripDetails? newTripDetailsInfo;
+  final List? tripIds;
+  final List? pickUpLatLng;
+  final List? pickUpAddress;
+  final List? finalWaypoints;
+  final List? emailAddress;
+  final List? userName;
+  final List? userPhone;
 
-  NewTripPage({super.key, this.newTripDetailsInfo, this.finalWaypoints, this.pickUpLatLng, this.tripIds, this.emailAddress, this.userName, this.userPhone, this.pickUpAddress});
+  const NewTripPage({super.key, this.newTripDetailsInfo, this.finalWaypoints, this.pickUpLatLng, this.tripIds, this.emailAddress, this.userName, this.userPhone, this.pickUpAddress});
 
   @override
   State<NewTripPage> createState() => _NewTripPageState();
@@ -44,21 +48,15 @@ class _NewTripPageState extends State<NewTripPage>
   double googleMapPaddingFromBottom = 0;
   List<LatLng> coordinatesPolylineLatLngList = [];
   PolylinePoints polylinePoints = PolylinePoints();
-  Set<Marker> markersSet = Set<Marker>();
-  Set<Circle> circlesSet = Set<Circle>();
-  Set<Polyline> polyLinesSet = Set<Polyline>();
+  Set<Marker> markersSet = <Marker>{};
+  Set<Circle> circlesSet = <Circle>{};
+  Set<Polyline> polyLinesSet = <Polyline>{};
   BitmapDescriptor? carMarkerIcon;
   bool directionRequested = false;
-  /*String statusOfTrip = "accepted";
-  String durationText = "", distanceText = "";
-  String buttonTitleText = "ARRIVED";
-  Color buttonColor = Colors.indigoAccent;*/
   CommonMethods common = CommonMethods();
   LatLng dropOffLatLng = const LatLng(14.481952540896081,121.05271356403014);
   String dropOffAddress = "Mega Pacific Freight Logistics, Inc.";
   DirectionDetails? distanceDetails;
-  var finalWaypoints;
-  var finalWaypointsTest;
 
 
 
@@ -91,14 +89,11 @@ class _NewTripPageState extends State<NewTripPage>
     LatLng(14.535383780337185, 120.98310343990391),
     LatLng(14.486641629869697, 121.04244539389111)];*/
 
-    //log("finalPickUpLatLng : $finalPickUpLatLng");
-
-
     //common.turnOffLocationUpdatesForHomePage();
     showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',)
+        builder: (BuildContext context) => const LoadingDialog(messageText: 'Please wait...',)
     );
 
 
@@ -118,10 +113,9 @@ class _NewTripPageState extends State<NewTripPage>
 
     if(latLngPoints.isNotEmpty)
     {
-      latLngPoints.forEach((PointLatLng pointLatLng)
-      {
+      for (var pointLatLng in latLngPoints) {
         coordinatesPolylineLatLngList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
-      });
+      }
     }
 
     //draw polyline
@@ -253,8 +247,6 @@ class _NewTripPageState extends State<NewTripPage>
         markersSet.add(carMarker);
       });
 
-      //update Trip Details Information
-      /*updateTripDetailsInformation();*/
 
       //update driver location to tripRequest
       Map updatedLocationOfDriver =
@@ -310,45 +302,23 @@ class _NewTripPageState extends State<NewTripPage>
     }
   }*/
 
-  endTripNow() async
+  endTripNow()
   {
+    FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).
+    child("tripDetails").remove();
+
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',),
+      builder: (BuildContext context) =>  InfoDialog(
+        title: 'Please wait...',
+        description: "The trip has ended. Thank you for your hard work. Keep safe always. ",
+      ),
     );
-
-    var driverCurrentLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
-
-    var directionDetailsEndTripInfo = await CommonMethods.getDirectionDetailsFromAPI(
-      widget.newTripDetailsInfo!.pickUpLatLng!, //pickup
-      driverCurrentLocationLatLng,
-        widget.finalWaypoints
-//destination
-    );
-
-    Navigator.pop(context);
-
-    String fareAmount = (common.calculateFareAmount(directionDetailsEndTripInfo!)).toString();
-
-    await FirebaseDatabase.instance.ref().child("tripRequests")
-        .child(widget.newTripDetailsInfo!.tripID!)
-        .child("fareAmount").set(fareAmount);
-
-    await FirebaseDatabase.instance.ref().child("tripRequests")
-        .child(widget.newTripDetailsInfo!.tripID!)
-        .child("status").set("ended");
-    
-    await FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).
-        child("tripDetails").remove();
 
     positionStreamNewTripPage!.cancel();
 
-    //dialog for collecting fare amount
-    displayPaymentDialog(fareAmount);
-
-    //save fare amount to driver total earnings
-    saveFareAmountToDriverTotalEarnings(fareAmount);
+    Restart.restartApp();
   }
 
   displayPaymentDialog(fareAmount)
@@ -394,7 +364,7 @@ class _NewTripPageState extends State<NewTripPage>
       "driverName": driverName,
       "driverPhone": driverPhone,
       "driverPhoto": driverPhoto,
-      "carDetails": carColor + " - " + carModel + " - " + carPlateNumber,
+      "carDetails": "$carColor - $carModel - $carPlateNumber",
     };
 
     Map<String, dynamic> driverCurrentLocation =
@@ -415,19 +385,17 @@ class _NewTripPageState extends State<NewTripPage>
   }
 
   void sendmail(emailAddress){
-    final mailer = Mailer('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');
+    final mailer = Mailer('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');
     final toAddress = Address(emailAddress);
-    final fromAddress = Address('3pldispatchmanagementsystem@gmail.com');
-    final content = Content('text/plain', 'Your E-receipt is here please view it. ');
-    final subject = 'Your E-Receipt is Here';
+    const fromAddress = Address('3pldispatchmanagementsystem@gmail.com');
+    const content = Content('text/plain', 'Your package has been delivered.\nPlease communicate with the admin for your billing info and check your trip history for the Photo proof.  ');
+    const subject = 'Your E-confirmation is here';
     //final template_id = "d-b85aedb06e864b3bb1fb7934427875f7";
     final personalization = Personalization([toAddress]);
 
     final email =
     Email([personalization], fromAddress, subject, content: [content]);
-    mailer.send(email).then((result) {
-      print(result.isValue);
-    });
+    mailer.send(email);
   }
 
   @override
@@ -437,13 +405,6 @@ class _NewTripPageState extends State<NewTripPage>
 
     saveDriverDataToTripInfo();
   }
-
-/*  @override
-  void dispose() {
-    // Cancel the stream subscription when the widget is disposed
-    positionStreamNewTripPage?.cancel();
-    super.dispose();
-  }*/
 
   /// START OF WIDGET BUILD
   @override
@@ -456,7 +417,6 @@ class _NewTripPageState extends State<NewTripPage>
     var finalPickUpLatLng = widget.pickUpLatLng!.expand((e) => e).toList();
     var finalPickUpAddress = widget.pickUpAddress!.expand((e) => e).toList();
 
-    log("email : $finalEmail");
     makeMarker();
     return Scaffold(
       body: Stack(
@@ -501,7 +461,7 @@ class _NewTripPageState extends State<NewTripPage>
             height: 300,
               child: ListView.builder(
                 itemCount: finalTripIDs.length,
-                physics: BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 itemBuilder: (context, index) {
                   return tripDetails(
                     key: Key("counter-$index"),
@@ -516,6 +476,43 @@ class _NewTripPageState extends State<NewTripPage>
                   ),
           ),
 
+          Positioned(
+              top: 61,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: (){
+                        setState(() {
+                          //end the trip
+                          for(int i = 0; i < finalTripIDs.length; i++){
+                            var tripId = finalTripIDs[i];
+                            var email = finalEmail[i];
+                            FirebaseDatabase.instance.ref()
+                                .child("tripRequests")
+                                .child(tripId)
+                                .child("status").set("ended");
+                            sendmail(email);
+                            //send e-receipt to users
+                          }
+                          endTripNow();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber
+                      ),
+                      child: const Text(
+                        "End Trip",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )
+                  ),
+                ],
+              )
+          ),
         ],
       ),
     );
@@ -524,21 +521,21 @@ class _NewTripPageState extends State<NewTripPage>
 
 class tripDetails extends StatefulWidget {
 
-  String? userName;
-  String? userPhone;
-  String? pickUpAddress;
-  String? dropOffAddress;
-  String? tripID;
-  String? email;
-  LatLng? pickUpLatLng;
+ final String? userName;
+ final String? userPhone;
+ final String? pickUpAddress;
+ final String? dropOffAddress;
+ final String? tripID;
+ final String? email;
+ final LatLng? pickUpLatLng;
 
-  tripDetails({super.key, required this.userName, required this.userPhone, required this.pickUpAddress, required this.dropOffAddress, required this.tripID, required this.pickUpLatLng, required this.email});
+ const tripDetails({super.key, required this.userName, required this.userPhone, required this.pickUpAddress, required this.dropOffAddress, required this.tripID, required this.pickUpLatLng, required this.email});
 
   @override
   State<tripDetails> createState() => _tripDetailsState();
 }
 
-class _tripDetailsState extends State<tripDetails> {
+class _tripDetailsState extends State<tripDetails> with AutomaticKeepAliveClientMixin {
 
   String statusOfTrip = "accepted";
   String buttonTitleText = "ARRIVED";
@@ -547,13 +544,25 @@ class _tripDetailsState extends State<tripDetails> {
   LatLng dropOffLatLng = const LatLng(14.481952540896081,121.05271356403014);
   String durationText = "", distanceText = "";
   CommonMethods common = CommonMethods();
+  String test = "";
 
-  void sendmail(emailAddress){
-    final mailer = Mailer('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');
+
+
+  retrievePickUpPhoto() async {
+    DatabaseReference photoRef = FirebaseDatabase.instance.ref().child("tripRequests").child(widget.tripID!).child("pickUpPhoto");
+    await photoRef.once().then((value) => {
+      test  = (value.snapshot.value as Map)["pickUpPhoto"]
+    });
+  }
+
+
+  void sendmail(emailAddress, filename){
+    final mailer = Mailer('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');
     final toAddress = Address(emailAddress);
-    final fromAddress = Address('3pldispatchmanagementsystem@gmail.com');
-    final content = Content('text/plain', 'Your E-receipt is here please view it. ');
-    final subject = 'Your E-Receipt is Here';
+    const fromAddress =  Address('3pldispatchmanagementsystem@gmail.com');
+    const content =  Content('text/plain', 'Your E-receipt is here please view it. ');
+    //const attachments = Attachment("image/jpeg", filename);
+    const subject = 'Your E-Receipt is Here';
     //final template_id = "d-b85aedb06e864b3bb1fb7934427875f7";
     final personalization = Personalization([toAddress]);
 
@@ -597,8 +606,7 @@ class _tripDetailsState extends State<tripDetails> {
         dropOffDestinationLocationLatLng = dropOffLatLng;
       }
 
-      var directionDetailsInfo = await CommonMethods.getDirectionDetailsFromAPIDurationDistance(driverLocationLatLng, dropOffDestinationLocationLatLng
-      );
+      var directionDetailsInfo = await CommonMethods.getDirectionDetailsFromAPIDurationDistance(driverLocationLatLng, dropOffDestinationLocationLatLng);
 
       if(directionDetailsInfo != null)
       {
@@ -606,19 +614,21 @@ class _tripDetailsState extends State<tripDetails> {
 
         setState(() {
           distanceText = directionDetailsInfo.distanceTextString!;
+          log("distance : $distanceText");
           durationText = directionDetailsInfo.durationTextString!;
+          log("duration : $durationText");
 
         });
       }
     }
   }
 
-  endTripNow() async
+  /*endTripNow() async
   {
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => LoadingDialog(messageText: 'Please wait...',),
+      builder: (BuildContext context) => const LoadingDialog(messageText: 'Please wait...',),
     );
 
     var driverCurrentLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
@@ -646,27 +656,29 @@ class _tripDetailsState extends State<tripDetails> {
 
     positionStreamNewTripPage!.cancel();
 
-    /* //dialog for collecting fare amount
+    *//* //dialog for collecting fare amount
     displayPaymentDialog(fareAmount);
 
     //save fare amount to driver total earnings
-    saveFareAmountToDriverTotalEarnings(fareAmount);*/
-  }
+    saveFareAmountToDriverTotalEarnings(fareAmount);*//*
+  }*/
 
 
   @override
   Widget build(BuildContext context) {
+    getLocationOfDriver();
+    super.build(context);
     return  Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.black87,
-            borderRadius: BorderRadius.only(topRight: Radius.circular(17), topLeft: Radius.circular(17)),
+            borderRadius: BorderRadius.only(topRight: Radius.circular(17), topLeft: Radius.circular(17), bottomLeft: Radius.circular(17), bottomRight: Radius.circular(17)),
             boxShadow:
             [
               BoxShadow(
                 color: Colors.black26,
-                blurRadius: 17,
+                blurRadius: 15,
                 spreadRadius: 0.5,
                 offset: Offset(0.7, 0.7),
               ),
@@ -682,7 +694,7 @@ class _tripDetailsState extends State<tripDetails> {
                 //trip duration
                 Center(
                   child: Text(
-                    durationText + " - " + distanceText,
+                    "$durationText - $distanceText",
                     style: const TextStyle(
                       color: Colors.green,
                       fontSize: 15,
@@ -693,11 +705,10 @@ class _tripDetailsState extends State<tripDetails> {
 
                 const SizedBox(height: 5,),
 
-                //user name - call user icon btn
+                //user name - call user icon btn - camera
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     //user name
                     Text(
                       widget.userName!,
@@ -727,6 +738,18 @@ class _tripDetailsState extends State<tripDetails> {
                       ),
                     ),
 
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (c) => CameraPage(tripID: widget.tripID!,)));
+                      },
+                      child: const Padding(
+                          padding: EdgeInsets.only(right: 10),
+                      child: Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.grey,
+                      ),
+                      ),
+                    )
                   ],
                 ),
 
@@ -735,7 +758,6 @@ class _tripDetailsState extends State<tripDetails> {
                 // pickup icon and location
                 Row(
                   children: [
-
                     Image.asset(
                       "assets/images/initial.png",
                       height: 16,
@@ -787,7 +809,6 @@ class _tripDetailsState extends State<tripDetails> {
                   child: ElevatedButton(
                     onPressed: () async
                     {
-
                       //handleButtonPress(statusOfTrip);
                       // execute statement when clicking ARRIVED BUTTON
                       if(statusOfTrip == "accepted")
@@ -799,8 +820,6 @@ class _tripDetailsState extends State<tripDetails> {
                           });
                         }
                         statusOfTrip = "arrived";
-
-                        // Navigator.pop(context);
                       }
                       // execute statement when clicking START TRIP BUTTON
                       else if(statusOfTrip == "arrived")
@@ -821,14 +840,7 @@ class _tripDetailsState extends State<tripDetails> {
                       // execute statement when clicking END TRIP BUTTON
                       else if(statusOfTrip == "ontrip")
                       {
-                        //end the trip
-                        FirebaseDatabase.instance.ref()
-                            .child("tripRequests")
-                            .child(widget.tripID!)
-                            .child("status").set("ended");
-                        //send e-receipt to users
-                        sendmail(widget.email);
-                        endTripNow();
+                        null;
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -848,4 +860,7 @@ class _tripDetailsState extends State<tripDetails> {
         )
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -1,8 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_geofire/flutter_geofire.dart';
-import 'package:restart_app/restart_app.dart';
 import '../authentication/login_screen.dart';
 import '../global/global_var.dart';
 import '../methods/common_methods.dart';
@@ -186,7 +183,7 @@ class _ProfilePageState extends State<ProfilePage>
                 onPressed: ()
                 {
                   FirebaseAuth.instance.signOut();
-                  Navigator.push(context, MaterialPageRoute(builder: (c)=> LoginScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (c)=> const LoginScreen()));
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,

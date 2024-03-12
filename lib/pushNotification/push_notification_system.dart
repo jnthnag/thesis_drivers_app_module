@@ -6,7 +6,6 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:thesis_drivers_app_module/global/global_var.dart';
@@ -38,6 +37,7 @@ class PushNotificationSystem
     firebaseCloudMessaging.subscribeToTopic("drivers");
     firebaseCloudMessaging.subscribeToTopic("users");
 
+    return null;
   }
 
   // listening for new notifications (covers 3 scenarios)
@@ -88,9 +88,8 @@ class PushNotificationSystem
              context: context,
              barrierDismissible: false,
              builder: (BuildContext context) =>
-                 LoadingDialog(messageText: "Getting Details"),
+                 const LoadingDialog(messageText: "Getting Details"),
            );
-           DatabaseReference statusRef = FirebaseDatabase.instance.ref().child("tripRequests").child(tripID).child("status");
           DatabaseReference tripRequestRef = FirebaseDatabase.instance.ref().child("tripRequests").child(tripID);
           tripRequestRef.once().then((dataSnapshot) {
             Navigator.pop(context);
@@ -144,8 +143,6 @@ class PushNotificationSystem
                 .child(FirebaseAuth.instance.currentUser!.uid).child("tripDetails").child(tripID);
 
             driverTripIDDetails.update(tripIDDetails);
-
-
 
           });
         }

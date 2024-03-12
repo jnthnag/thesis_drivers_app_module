@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) => LoadingDialog(messageText: "Logging in your account"),
+        builder: (BuildContext context) => const LoadingDialog(messageText: "Logging in your account"),
     );
 
     final User? userFirebase = (
@@ -51,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
             password: common.passwordTextEditingController.text.trim()
         ).catchError((errorMessage){
           common.displaySnackbar(errorMessage.toString(), context);
+          return errorMessage;
         })
     ).user;
 

@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class EarningsPage extends StatefulWidget {
   const EarningsPage({super.key});
@@ -57,7 +56,7 @@ class _EarningsPageState extends State<EarningsPage>
                       colors: [
                         Colors.blueAccent.shade400,
                         Colors.blueGrey.shade400,
-                        Color(0xD8FFF200),
+                        const Color(0xD8FFF200),
                         Colors.blueGrey.shade400,
                       ],
                       stops: const [

@@ -1,11 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -14,15 +10,14 @@ import 'package:thesis_drivers_app_module/pages/about_page.dart';
 import '../global/global_var.dart';
 import '../methods/map_theme_methods.dart';
 import '../pushNotification/push_notification_system.dart';
-import 'new_trip_page.dart';
 import 'package:thesis_drivers_app_module/models/trip_details.dart';
 
 
 
 class HomePage extends StatefulWidget {
 
-  TripDetails? tripDetailsInfo;
-  HomePage({super.key, this.tripDetailsInfo});
+  final TripDetails? tripDetailsInfo;
+  const HomePage({super.key, this.tripDetailsInfo});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -49,9 +44,9 @@ class _HomePageState extends State<HomePage> {
     currentPositionOfDriver = positionOfUser;
     driverCurrentPosition = currentPositionOfDriver;
 
-    LatLng LatLngUserPosition = LatLng(currentPositionOfDriver!.latitude, currentPositionOfDriver!.longitude);
+    LatLng latLngUserPosition = LatLng(currentPositionOfDriver!.latitude, currentPositionOfDriver!.longitude);
 
-    CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 75);
+    CameraPosition cameraPosition = CameraPosition(target: latLngUserPosition, zoom: 75);
 
     controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
@@ -166,7 +161,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         child: Drawer(
-          backgroundColor: Color(0xFF61A3BA),
+          backgroundColor: const Color(0xFF61A3BA),
           child: ListView(
             children: [
 
@@ -217,12 +212,12 @@ class _HomePageState extends State<HomePage> {
               //body
               GestureDetector(
                 onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (c) => AboutPage()));
+                  Navigator.push(context, MaterialPageRoute(builder: (c) => const AboutPage()));
                 },
                 child: ListTile(
                   leading: IconButton(
                       onPressed: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => AboutPage()));
+                        Navigator.push(context, MaterialPageRoute(builder: (c) => const AboutPage()));
                       },
                       icon: const Icon(
                         Icons.info,
@@ -244,13 +239,13 @@ class _HomePageState extends State<HomePage> {
               GestureDetector(
                 onTap: (){
                   FirebaseAuth.instance.signOut();
-                  Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (c) => const LoginScreen()));
                 },
                 child: ListTile(
                   leading: IconButton(
                       onPressed: (){
                         FirebaseAuth.instance.signOut();
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => LoginScreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (c) => const LoginScreen()));
                       },
                       icon: const Icon(
                         Icons.logout,

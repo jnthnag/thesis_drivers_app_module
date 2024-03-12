@@ -23,7 +23,7 @@ class _TripsPageState extends State<TripsPage>
       if(snap.snapshot.value != null)
       {
         Map<dynamic, dynamic> allTripsMap = snap.snapshot.value as Map;
-        int allTripsLength = allTripsMap.length;
+        //int allTripsLength = allTripsMap.length;
 
         List<String> tripsCompletedByCurrentDriver = [];
 
@@ -101,7 +101,7 @@ class _TripsPageState extends State<TripsPage>
             GestureDetector(
               onTap: ()
               {
-                Navigator.push(context, MaterialPageRoute(builder: (c)=> TripsHistoryPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (c)=> const TripsHistoryPage()));
               },
               child: Center(
                 child: Container(

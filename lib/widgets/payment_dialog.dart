@@ -4,9 +4,9 @@ import '../methods/common_methods.dart';
 
 class PaymentDialog extends StatefulWidget
 {
-  String fareAmount;
+  final String fareAmount;
 
-  PaymentDialog({super.key, required this.fareAmount,});
+  const PaymentDialog({super.key, required this.fareAmount,});
 
   @override
   State<PaymentDialog> createState() => _PaymentDialogState();
@@ -56,7 +56,7 @@ class _PaymentDialogState extends State<PaymentDialog>
             const SizedBox(height: 16,),
 
             Text(
-              "\$" + widget.fareAmount,
+              "\$${widget.fareAmount}",
               style: const TextStyle(
                 color: Colors.grey,
                 fontSize: 36,
