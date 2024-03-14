@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _CameraPageState extends State<CameraPage> {
   CommonMethods common = CommonMethods();
   XFile? pickupFile, destinationFile;
   String urlOfUploadedImage = "";
+  String state = "initial";
 
   uploadImageToPickUp() async
   {
@@ -43,23 +45,6 @@ class _CameraPageState extends State<CameraPage> {
     return "done";
   }
 
-  uploadImageToDropOff() async
-  {
-    // use Date and Time to generate a unique ID for the image
-    String imageIDName = DateTime.now().millisecondsSinceEpoch.toString();
-    String jpg = ".jpg";
-    String finalImageIDName = imageIDName + jpg;
-    log("image name : $finalImageIDName");
-    Reference referenceImage = FirebaseStorage.instance.ref().child("Images").child(widget.tripID!).child(finalImageIDName);
-    UploadTask uploadTask = referenceImage.putFile(File(destinationFile!.path));
-    TaskSnapshot snapshot = await uploadTask;
-    urlOfUploadedImage = await snapshot.ref.getDownloadURL();
-
-    setState(() {
-      urlOfUploadedImage;
-    });
-
-  }
 
   setImageToDatabase() async {
     showDialog(
@@ -73,12 +58,14 @@ class _CameraPageState extends State<CameraPage> {
     };
     usersRef.set(imageMap);
     Navigator.pop(context);
-    return "done";
+    return urlOfUploadedImage;
   }
+
+
 
   chooseImageFromGalleryPickup() async
   {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
 
     if(pickedFile != null)
     {
@@ -90,24 +77,18 @@ class _CameraPageState extends State<CameraPage> {
     return "done";
   }
 
-  chooseImageFromGalleryDestination() async
-  {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
-
-    if(pickedFile != null)
-    {
-      setState(() {
-        destinationFile = pickedFile;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Images proof"),
+        title: const Text("Pick-Up Proof "),
         centerTitle: true,
+        leading: IconButton(
+            onPressed: ()
+            {
+              Navigator.pop(context);
+            }, icon: const Icon(Icons.arrow_back)),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -131,90 +112,53 @@ class _CameraPageState extends State<CameraPage> {
 
                   const SizedBox(width: 50,),
 
-                  GestureDetector(
-                    onTap: () async {
-                      var responseFromChooseImagePickUp = await chooseImageFromGalleryPickup();
-                      log(responseFromChooseImagePickUp);
-                      if(responseFromChooseImagePickUp == "done"){
-                        var responseFromUploadImageToPickUp = await uploadImageToPickUp();
-                        if(responseFromUploadImageToPickUp == "done"){
-                          await setImageToDatabase();
+
+                    GestureDetector(
+                      onTap: () async {
+                        var responseFromChooseImagePickUp = await chooseImageFromGalleryPickup();
+                        if(responseFromChooseImagePickUp == "done"){
+                          var responseFromUploadImageToPickUp = await uploadImageToPickUp();
+                          if(responseFromUploadImageToPickUp == "done"){
+                            await setImageToDatabase();
+                          }
                         }
-                      }
-                    },
-                    child: pickupFile == null ?
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: AssetImage("assets/images/avatarman.png"),
-                    ) : Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.grey,
-                        image: DecorationImage(
-                          fit: BoxFit.fitHeight,
-                          image: FileImage(
-                            File(
-                              pickupFile!.path,
+                      },
+                      child: pickupFile == null ?
+                      const CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage("assets/images/No-image.jpg"),
+                      ) :  Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey,
+                          image: DecorationImage(
+                            fit: BoxFit.fitHeight,
+                            image: FileImage(
+                              File(
+                                pickupFile!.path,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  )
+                    )
                 ]
               ),
-
               const Divider(
                 height: 50,
                 color: Colors.white,
               ),
 
-              Row(
-                children: [
-                  const Text(
-                    "Proof of Delivery image",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
-                  ),
-
-                  const SizedBox(width: 100,),
-
-                  GestureDetector(
-                    onTap: (){
-                      chooseImageFromGalleryDestination();
-                    },
-                    child: destinationFile == null ?
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: AssetImage("assets/images/avatarman.png"),
-                    ) : Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.grey,
-                        image: DecorationImage(
-                          fit: BoxFit.fitHeight,
-                          image: FileImage(
-                            File(
-                              destinationFile!.path,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              )
             ]
           ),
         ),
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 

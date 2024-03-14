@@ -56,6 +56,7 @@ dependencies:
 
   # google APIs
   geolocator:
+  cached_network_image: ^3.3.1
 
 dev_dependencies:
   flutter_test:

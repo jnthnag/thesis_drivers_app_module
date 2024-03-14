@@ -1,8 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +12,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:sendgrid_mailer/sendgrid_mailer.dart';
 import 'package:thesis_drivers_app_module/pages/Camera.dart';
+import 'package:thesis_drivers_app_module/pages/CameraPageDropOff.dart';
 import 'package:thesis_drivers_app_module/widgets/info_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../global/global_var.dart';
@@ -58,9 +61,6 @@ class _NewTripPageState extends State<NewTripPage>
   String dropOffAddress = "Mega Pacific Freight Logistics, Inc.";
   DirectionDetails? distanceDetails;
 
-
-
-
   makeMarker()
   {
     if(carMarkerIcon == null)
@@ -80,7 +80,6 @@ class _NewTripPageState extends State<NewTripPage>
     var finalWaypoints = widget.finalWaypoints!;
     List finalPickUpLatLng = widget.pickUpLatLng!.expand((e) => e).toList();
     //var finalWaypoints = ["SM City Bicutan - Basement Parking| SM Mall of Asia Pacific Dr| Vista GL Taft by Vista Residences | Adamson University Main Building |  Robinsons Place Manila| University Pad Residences Taft "];
-    //var finalPickUpLatLng = widget.pickUpLatLng!;
 
     /*var finalPickUpLatLng = const [LatLng(14.563171438249386, 120.99660754139758),
     LatLng(14.575806318146906, 120.98390566355988),
@@ -101,7 +100,7 @@ class _NewTripPageState extends State<NewTripPage>
     var tripDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(
         sourceLocationLatLng,
         destinationLocationLatLng,
-        finalWaypoints
+        waypoints
     );
 
     Navigator.pop(context);
@@ -239,14 +238,14 @@ class _NewTripPageState extends State<NewTripPage>
         infoWindow: const InfoWindow(title: "My Location"),
       );
 
-      setState(() {
-        CameraPosition cameraPosition = CameraPosition(target: driverCurrentPositionLatLng, zoom: 16);
-        controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-        markersSet.removeWhere((element) => element.markerId.value == "carMarkerID");
-        markersSet.add(carMarker);
-      });
+        setState(() {
+          CameraPosition cameraPosition = CameraPosition(target: driverCurrentPositionLatLng, zoom: 16);
+          controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
+          markersSet.removeWhere((element) => element.markerId.value == "carMarkerID");
+          markersSet.add(carMarker);
+        });
 
       //update driver location to tripRequest
       Map updatedLocationOfDriver =
@@ -261,52 +260,18 @@ class _NewTripPageState extends State<NewTripPage>
     });
   }
 
-  /*updateTripDetailsInformation() async
-  {
-    if(!directionRequested)
-    {
-      directionRequested = true;
-
-      if(driverCurrentPosition == null)
-      {
-        return;
-      }
-
-      var driverLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
-
-      LatLng dropOffDestinationLocationLatLng;
-
-
-      if(statusOfTrip == "accepted") // scenario 1: pick up order, driver drop off = USER pick up location
-      {
-        dropOffDestinationLocationLatLng = widget.newTripDetailsInfo!.pickUpLatLng!;
-      }
-      else // scenario 2: after order pickup: driver drop off = USER drop off location
-      {
-        dropOffDestinationLocationLatLng = dropOffLatLng;
-      }
-
-      var directionDetailsInfo = await CommonMethods.getDirectionDetailsFromAPI(driverLocationLatLng, dropOffLatLng, widget.finalWaypoints
-      );
-
-      if(directionDetailsInfo != null)
-      {
-        directionRequested = false;
-
-        setState(() {
-          distanceText = directionDetailsInfo.distanceTextString!;
-          durationText = directionDetailsInfo.durationTextString!;
-
-        });
-      }
-    }
-  }*/
 
   endTripNow()
   {
     FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).
     child("tripDetails").remove();
 
+    positionStreamNewTripPage!.cancel();
+
+    Restart.restartApp();
+  }
+
+  displayEndTripDialog(){
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -315,10 +280,6 @@ class _NewTripPageState extends State<NewTripPage>
         description: "The trip has ended. Thank you for your hard work. Keep safe always. ",
       ),
     );
-
-    positionStreamNewTripPage!.cancel();
-
-    Restart.restartApp();
   }
 
   displayPaymentDialog(fareAmount)
@@ -446,8 +407,7 @@ class _NewTripPageState extends State<NewTripPage>
                   driverCurrentPosition!.longitude
               );
 
-              await obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, dropOffLatLng, widget.finalWaypoints
-              );
+              await obtainDirectionAndDrawRoute(driverCurrentLocationLatLng, dropOffLatLng, widget.finalWaypoints);
 
               getLiveLocationUpdatesOfDriver();
             },
@@ -485,7 +445,7 @@ class _NewTripPageState extends State<NewTripPage>
                 children: [
                   ElevatedButton(
                       onPressed: (){
-                        setState(() {
+
                           //end the trip
                           for(int i = 0; i < finalTripIDs.length; i++){
                             var tripId = finalTripIDs[i];
@@ -497,8 +457,9 @@ class _NewTripPageState extends State<NewTripPage>
                             sendmail(email);
                             //send e-receipt to users
                           }
-                          endTripNow();
-                        });
+                            displayEndTripDialog();
+                            endTripNow();
+
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber
@@ -544,17 +505,37 @@ class _tripDetailsState extends State<tripDetails> with AutomaticKeepAliveClient
   LatLng dropOffLatLng = const LatLng(14.481952540896081,121.05271356403014);
   String durationText = "", distanceText = "";
   CommonMethods common = CommonMethods();
-  String test = "";
+  String pickUpPhoto = "";
+  String dropOffPhoto = "";
+  String responseFromCamera = "pickUp";
+  String initialPhotoUrl = "";
 
 
 
   retrievePickUpPhoto() async {
     DatabaseReference photoRef = FirebaseDatabase.instance.ref().child("tripRequests").child(widget.tripID!).child("pickUpPhoto");
     await photoRef.once().then((value) => {
-      test  = (value.snapshot.value as Map)["pickUpPhoto"]
+      pickUpPhoto  = (value.snapshot.value as Map)["pickUpPhoto"]
+
     });
+    log("pickUpPhoto : $pickUpPhoto");
   }
 
+
+
+  retrieveDropOffPhoto() async {
+      DatabaseReference photoRef = FirebaseDatabase.instance.ref().child("tripRequests").child(widget.tripID!).child("dropOffPhoto");
+      await photoRef.once().then((value) => {
+        dropOffPhoto  = (value.snapshot.value as Map)["dropOffPhoto"]
+      });
+
+      log("dropOffPhoto : $dropOffPhoto");
+  }
+
+  retrieveDefaultPhoto() async {
+    var initialPhotoRef = FirebaseStorage.instance.ref().child("Images").child("gs://thesis2-207ad.appspot.com/Images/istockphoto-1216251206-612x612.jpg");
+    initialPhotoUrl= initialPhotoRef.getDownloadURL().toString();
+  }
 
   void sendmail(emailAddress, filename){
     final mailer = Mailer('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');
@@ -612,57 +593,18 @@ class _tripDetailsState extends State<tripDetails> with AutomaticKeepAliveClient
       {
         directionRequested = false;
 
-        setState(() {
-          distanceText = directionDetailsInfo.distanceTextString!;
-          log("distance : $distanceText");
-          durationText = directionDetailsInfo.durationTextString!;
-          log("duration : $durationText");
+        if(mounted){
+          setState(() {
+            distanceText = directionDetailsInfo.distanceTextString!;
+            log("distance : $distanceText");
+            durationText = directionDetailsInfo.durationTextString!;
+            log("duration : $durationText");
 
-        });
+          });
+        }
       }
     }
   }
-
-  /*endTripNow() async
-  {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) => const LoadingDialog(messageText: 'Please wait...',),
-    );
-
-    var driverCurrentLocationLatLng = LatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
-
-    var directionDetailsEndTripInfo = await CommonMethods.getDirectionDetailsFromAPIDurationDistance(
-        widget.pickUpLatLng!, //pickup
-        driverCurrentLocationLatLng
-//destination
-    );
-
-    Navigator.pop(context);
-
-    String fareAmount = (common.calculateFareAmount(directionDetailsEndTripInfo!)).toString();
-
-    await FirebaseDatabase.instance.ref().child("tripRequests")
-        .child(widget.tripID!)
-        .child("fareAmount").set(fareAmount);
-
-    await FirebaseDatabase.instance.ref().child("tripRequests")
-        .child(widget.tripID!)
-        .child("status").set("ended");
-
-    await FirebaseDatabase.instance.ref().child("drivers").child(FirebaseAuth.instance.currentUser!.uid).
-    child("tripDetails").remove();
-
-    positionStreamNewTripPage!.cancel();
-
-    *//* //dialog for collecting fare amount
-    displayPaymentDialog(fareAmount);
-
-    //save fare amount to driver total earnings
-    saveFareAmountToDriverTotalEarnings(fareAmount);*//*
-  }*/
-
 
   @override
   Widget build(BuildContext context) {
@@ -718,7 +660,6 @@ class _tripDetailsState extends State<tripDetails> with AutomaticKeepAliveClient
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     //call user icon btn
                     GestureDetector(
                       onTap: ()
@@ -737,19 +678,37 @@ class _tripDetailsState extends State<tripDetails> with AutomaticKeepAliveClient
                         ),
                       ),
                     ),
-
-                    GestureDetector(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => CameraPage(tripID: widget.tripID!,)));
-                      },
-                      child: const Padding(
+                    if(responseFromCamera == "pickUp")...[
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (c) => CameraPage(tripID: widget.tripID!)));
+                          setState(() {
+                            responseFromCamera = "dropoff";
+                          });
+                        },
+                        child: const Padding(
                           padding: EdgeInsets.only(right: 10),
-                      child: Icon(
-                        Icons.camera_alt_rounded,
-                        color: Colors.grey,
-                      ),
-                      ),
-                    )
+                          child: Icon(
+                            Icons.camera_alt_rounded,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    ]
+                    else ...[
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (c) => CameraPageDropOff(tripID: widget.tripID!)));
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 10),
+                          child: Icon(
+                            Icons.camera_alt_rounded,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    ]
                   ],
                 ),
 

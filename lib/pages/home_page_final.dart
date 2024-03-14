@@ -46,8 +46,6 @@ class _HomePageState extends State<HomePageFinal> {
   List<String> username = [];
   List<String> userphone = [];
   List<String> pickUpAddress = [];
-
-
   var finalWaypointsTest;
   var finalWaypoints;
 
@@ -153,6 +151,7 @@ class _HomePageState extends State<HomePageFinal> {
       tripDetailsMap.forEach((key, value) {
         tripDetailsList.add({"key": key, ...value});
       });
+      log("tripDetailsMap : $tripDetailsMap");
       for(var tripDetails in tripDetailsList)
       {
         waypointsTest.add(tripDetails["pickUpAddress"]);
@@ -163,6 +162,7 @@ class _HomePageState extends State<HomePageFinal> {
         finalWaypoints = jsonEncode(waypointsTest);
       }
     });
+    log("finalWaypoints : $finalWaypoints");
     return finalWaypoints;
   }
 
